@@ -19,7 +19,7 @@ class TNH(TelnetHandler):
 		else:
 			p.stdin.write("2\n")
 		while 1:
-			s = p.stdout.read(1)
+			s = p.stdout.read(1024)
 			try:
 				self.write(s)
 			except:
