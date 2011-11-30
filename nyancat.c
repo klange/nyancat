@@ -903,7 +903,7 @@ try_again:
 		goto try_again;
 	}
 
-	printf("\033[H\033[2J");
+	printf("\033[H\033[2J\033[?25l");
 
 	int playing = 1;
 	size_t i = 0;
