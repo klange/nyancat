@@ -830,9 +830,9 @@ int main(int argc, char ** argv) {
 try_again:
 	printf("Select a mode:\n");
 	printf(" 1   xterm 256-color compatible mode (best)\n");
-	printf(" 2   xterm standard-color mode (okay)\n");
-	printf(" 3   linux + blink (may not work)\n");
-	printf(" 4   linux fallback (for framebuffers)\n");
+	printf(" 2   xterm standard-color mode (good)\n");
+	printf(" 3   linux + blink attribute (okay)\n");
+	printf(" 4   standard ansi terminal (ugly)\n");
 	printf("Your selection: ");
 	char response[10];
 	fgets(response, 2, stdin);
