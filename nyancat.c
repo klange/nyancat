@@ -827,6 +827,7 @@ char ** frames[] = {
 
 int main(int argc, char ** argv) {
 	printf("\033[H\033[2J");
+	fflush(stdout);
 try_again:
 	printf("Select a mode:\n");
 	printf(" 1   xterm 256-color compatible mode (best)\n");
