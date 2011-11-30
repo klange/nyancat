@@ -827,20 +827,82 @@ char ** frames[] = {
 
 int main(int argc, char ** argv) {
 	printf("\033[H\033[2J");
+try_again:
+	printf("Select a mode:\n");
+	printf(" 1   xterm 256-color compatible mode (best)\n");
+	printf(" 2   xterm standard-color mode (okay)\n");
+	printf(" 3   linux + blink (may not work)\n");
+	printf(" 4   linux fallback (for framebuffers)\n");
+	printf("Your selection: ");
+	char response[10];
+	fgets(response, 2, stdin);
+	if (!strcmp(response, "1")) {
+		colors[',']  = "\033[48;5;17m";  /* Blue background */
+		colors['.']  = "\033[48;5;15m";  /* White stars */
+		colors['\''] = "\033[48;5;0m";   /* Black border */
+		colors['@']  = "\033[48;5;230m"; /* Tan poptart */
+		colors['$']  = "\033[48;5;175m"; /* Pink poptart */
+		colors['-']  = "\033[48;5;162m"; /* Red poptart */
+		colors['>']  = "\033[48;5;9m";   /* Red rainbow */
+		colors['&']  = "\033[48;5;202m"; /* Orange rainbow */
+		colors['+']  = "\033[48;5;11m";  /* Yellow Rainbow */
+		colors['#']  = "\033[48;5;10m";  /* Green rainbow */
+		colors['=']  = "\033[48;5;33m";  /* Light blue rainbow */
+		colors[';']  = "\033[48;5;19m";  /* Dark blue rainbow */
+		colors['*']  = "\033[48;5;8m";   /* Gray cat face */
+		colors['%']  = "\033[48;5;175m"; /* Pink cheeks */
+	} else if (!strcmp(response, "2")) {
+		colors[',']  = "\033[104m";  /* Blue background */
+		colors['.']  = "\033[107m";  /* White stars */
+		colors['\''] = "\033[40m";   /* Black border */
+		colors['@']  = "\033[47m"; /* Tan poptart */
+		colors['$']  = "\033[105m"; /* Pink poptart */
+		colors['-']  = "\033[101m"; /* Red poptart */
+		colors['>']  = "\033[101m";   /* Red rainbow */
+		colors['&']  = "\033[43m"; /* Orange rainbow */
+		colors['+']  = "\033[103m";  /* Yellow Rainbow */
+		colors['#']  = "\033[102m";  /* Green rainbow */
+		colors['=']  = "\033[104m";  /* Light blue rainbow */
+		colors[';']  = "\033[44m";  /* Dark blue rainbow */
+		colors['*']  = "\033[100m";   /* Gray cat face */
+		colors['%']  = "\033[105m"; /* Pink cheeks */
+	} else if (!strcmp(response, "3")) {
+		colors[',']  = "\033[25;44m";  /* Blue background */
+		colors['.']  = "\033[5;47m";  /* White stars */
+		colors['\''] = "\033[25;40m";   /* Black border */
+		colors['@']  = "\033[5;47m"; /* Tan poptart */
+		colors['$']  = "\033[5;45m"; /* Pink poptart */
+		colors['-']  = "\033[5;41m"; /* Red poptart */
+		colors['>']  = "\033[5;41m";   /* Red rainbow */
+		colors['&']  = "\033[25;43m"; /* Orange rainbow */
+		colors['+']  = "\033[5;43m";  /* Yellow Rainbow */
+		colors['#']  = "\033[5;42m";  /* Green rainbow */
+		colors['=']  = "\033[25;44m";  /* Light blue rainbow */
+		colors[';']  = "\033[5;44m";  /* Dark blue rainbow */
+		colors['*']  = "\033[5;40m";   /* Gray cat face */
+		colors['%']  = "\033[5;45m"; /* Pink cheeks */
+	} else if (!strcmp(response, "4")) {
+		colors[',']  = "\033[44m";  /* Blue background */
+		colors['.']  = "\033[47m";  /* White stars */
+		colors['\''] = "\033[40m";   /* Black border */
+		colors['@']  = "\033[47m"; /* Tan poptart */
+		colors['$']  = "\033[45m"; /* Pink poptart */
+		colors['-']  = "\033[41m"; /* Red poptart */
+		colors['>']  = "\033[41m";   /* Red rainbow */
+		colors['&']  = "\033[43m"; /* Orange rainbow */
+		colors['+']  = "\033[43m";  /* Yellow Rainbow */
+		colors['#']  = "\033[42m";  /* Green rainbow */
+		colors['=']  = "\033[44m";  /* Light blue rainbow */
+		colors[';']  = "\033[44m";  /* Dark blue rainbow */
+		colors['*']  = "\033[40m";   /* Gray cat face */
+		colors['%']  = "\033[45m"; /* Pink cheeks */
+	} else {
+		printf("\033[H\033[2J");
+		printf("I'm sorry, what was that?\n");
+		goto try_again;
+	}
 
-	colors[',']  = "\033[48;5;17m";
-	colors['>']  = "\033[48;5;9m";
-	colors['.']  = "\033[48;5;15m";
-	colors['\''] = "\033[48;5;0m";
-	colors['@']  = "\033[48;5;230m";
-	colors['$']  = "\033[48;5;175m";
-	colors['&']  = "\033[48;5;202m";
-	colors['+']  = "\033[48;5;11m";
-	colors['-']  = "\033[48;5;162m";
-	colors['#']  = "\033[48;5;10m";
-	colors['*']  = "\033[48;5;8m";
-	colors['=']  = "\033[48;5;33m";
-	colors[';']  = "\033[48;5;19m";
+	printf("\033[H\033[2J");
 
 	int playing = 1;
 	size_t i = 0;
