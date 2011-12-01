@@ -3,7 +3,7 @@ version = 0.1
 tarname = $(package)
 distdir = $(tarname)-$(version)
 
-all clean check parser:
+all clean check nyancat:
 	cd src && $(MAKE) $@
 
 dist: $(distdir).tar.gz
