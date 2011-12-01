@@ -3,7 +3,7 @@ import SocketServer
 from subprocess import Popen, PIPE
 from telnetsrvlib import TelnetHandler
 
-class TNS(SocketServer.TCPServer):
+class TNS(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 	allow_reuse_address = True
 
 class TNH(TelnetHandler):
@@ -16,6 +16,8 @@ class TNH(TelnetHandler):
 			p.stdin.write("3\n")
 		elif (self.TERM.lower().find("fallback") != -1):
 			p.stdin.write("4\n")
+		elif (self.TERM.lower().find("rxvt") == 0):
+			p.stdin.write("3\n")
 		else:
 			p.stdin.write("2\n")
 		while 1:
