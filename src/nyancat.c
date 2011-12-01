@@ -845,6 +845,8 @@ char ** frames[] = {
 	NULL
 };
 
+char * output = "  ";
+
 #define MIN_ROW 20
 #define MAX_ROW 44
 
@@ -909,20 +911,21 @@ try_again:
 		colors['*']  = "\033[5;40m";     /* Gray cat face */
 		colors['%']  = "\033[5;45m";     /* Pink cheeks */
 	} else if (!strcmp(response, "4")) {
-		colors[',']  = "\033[44m";       /* Blue background */
-		colors['.']  = "\033[47m";       /* White stars */
-		colors['\''] = "\033[40m";       /* Black border */
-		colors['@']  = "\033[47m";       /* Tan poptart */
-		colors['$']  = "\033[45m";       /* Pink poptart */
-		colors['-']  = "\033[41m";       /* Red poptart */
-		colors['>']  = "\033[41m";       /* Red rainbow */
-		colors['&']  = "\033[43m";       /* Orange rainbow */
-		colors['+']  = "\033[43m";       /* Yellow Rainbow */
-		colors['#']  = "\033[42m";       /* Green rainbow */
-		colors['=']  = "\033[44m";       /* Light blue rainbow */
-		colors[';']  = "\033[44m";       /* Dark blue rainbow */
-		colors['*']  = "\033[40m";       /* Gray cat face */
-		colors['%']  = "\033[45m";       /* Pink cheeks */
+		colors[',']  = "\033[21;34;44m";       /* Blue background */
+		colors['.']  = "\033[1;37;47m";       /* White stars */
+		colors['\''] = "\033[21;30;40m";       /* Black border */
+		colors['@']  = "\033[1;37;47m";       /* Tan poptart */
+		colors['$']  = "\033[1;35;45m";       /* Pink poptart */
+		colors['-']  = "\033[1;31;41m";       /* Red poptart */
+		colors['>']  = "\033[1;31;41m";       /* Red rainbow */
+		colors['&']  = "\033[21;33;43m";       /* Orange rainbow */
+		colors['+']  = "\033[1;33;43m";       /* Yellow Rainbow */
+		colors['#']  = "\033[1;32;42m";       /* Green rainbow */
+		colors['=']  = "\033[1;34;44m";       /* Light blue rainbow */
+		colors[';']  = "\033[21;34;44m";       /* Dark blue rainbow */
+		colors['*']  = "\033[1;30;40m";       /* Gray cat face */
+		colors['%']  = "\033[1;35;45m";       /* Pink cheeks */
+		output = "██";
 	} else {
 		printf("\033[H\033[2J");
 		printf("I'm sorry, what was that?\n");
@@ -940,9 +943,9 @@ try_again:
 			for (x = MIN_COL; x < MAX_COL; ++x) {
 				if (frames[i][y][x] != last && colors[frames[i][y][x]]) {
 					last = frames[i][y][x];
-					printf("%s  ", colors[frames[i][y][x]]);
+					printf("%s%s", colors[frames[i][y][x]], output);
 				} else {
-					printf("  ");
+					printf(output);
 				}
 			}
 			if (y != MAX_ROW - 1)
