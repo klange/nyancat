@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import SocketServer
+import threading, os
 from subprocess import Popen, PIPE
 from telnetsrvlib import TelnetHandler
 
@@ -28,5 +29,13 @@ class TNH(TelnetHandler):
 				p.kill()
 				return
 
-tns = TNS(("0.0.0.0", 23), TNH)
-tns.serve_forever()
+class serverThread(threading.Thread):
+	def run(self):
+		tns = TNS(("0.0.0.0", 23), TNH)
+		tns.serve_forever()
+
+if __name__ == "__main__":
+	t = serverThread()
+	t.start()
+	raw_input("Let me know when to stop.")
+	os.kill(os.getpid(), 9)
