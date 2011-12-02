@@ -853,10 +853,16 @@ char * output = "  ";
 #define MIN_COL 10
 #define MAX_COL 50
 
+void SIGINT_handler(int sig){
+	printf("\033[?25h");
+	exit(0);
+}
+
 int main(int argc, char ** argv) {
 	printf("\033[H\033[2J");
 	fflush(stdout);
 	int always_escape = 0;
+	signal(SIGINT, SIGINT_handler);
 try_again:
 	printf("Select a mode:\n");
 	printf(" 1   xterm 256-color compatible mode (best)\n");
@@ -1025,6 +1031,5 @@ try_again:
 		printf("\033[H");
 		usleep(90000);
 	}
-
 	return 0;
 }
