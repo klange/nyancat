@@ -8,7 +8,7 @@ Nyancat rendered in your terminal.
 
 First build the C application:
 
-    make
+    make && cd src
 
 You can run the C application standalone. It will prompt you to select a color mode.
 
@@ -16,7 +16,7 @@ You can run the C application standalone. It will prompt you to select a color m
 
 To run the telnet server, use:
 
-    sudo ./nyancat.py
+    sudo ./start.sh
 
 (The server will only try to start on port 23, so you must be root)
 
