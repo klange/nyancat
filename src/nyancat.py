@@ -15,6 +15,12 @@ class TNH(TelnetHandler):
 			p.stdin.write("1\n")
 		elif (self.TERM.lower().find("linux") != -1):
 			p.stdin.write("3\n")
+		elif (self.TERM.lower().find("cygwin") != -1):
+			p.stdin.write("5\n")
+		elif (self.TERM.lower().find("vtnt") != -1):
+			p.stdin.write("5\n")
+		elif (self.TERM.lower().find("vt220") != -1):
+			p.stdin.write("6\n")
 		elif (self.TERM.lower().find("fallback") != -1):
 			p.stdin.write("4\n")
 		elif (self.TERM.lower().find("rxvt") == 0):

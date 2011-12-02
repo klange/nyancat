@@ -19,6 +19,8 @@ $(distdir): FORCE
 	cp src/nyancat.c $(distdir)/src
 	cp src/nyancat.py $(distdir)/src
 	cp src/telnetsrvlib.py $(distdir)/src
+	cp src/reset.sh $(distdir)/src
+	cp src/run.sh $(distdir)/src
 
 FORCE:
 	-rm $(distdir).tar.gz >/dev/null 2>&1

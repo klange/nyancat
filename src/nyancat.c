@@ -856,12 +856,15 @@ char * output = "  ";
 int main(int argc, char ** argv) {
 	printf("\033[H\033[2J");
 	fflush(stdout);
+	int always_escape = 0;
 try_again:
 	printf("Select a mode:\n");
 	printf(" 1   xterm 256-color compatible mode (best)\n");
 	printf(" 2   xterm standard-color mode (good)\n");
 	printf(" 3   linux + blink attribute (okay)\n");
-	printf(" 4   standard ansi terminal (ugly)\n");
+	printf(" 4   unicode ansi terminal (okay)\n");
+	printf(" 5   extended ascii ansi terminal (okay)\n");
+	printf(" 6   vt220 terrible, no-color mode\n");
 	printf("Your selection: ");
 	char response[10];
 	fgets(response, 2, stdin);
@@ -911,25 +914,85 @@ try_again:
 		colors['*']  = "\033[5;40m";     /* Gray cat face */
 		colors['%']  = "\033[5;45m";     /* Pink cheeks */
 	} else if (!strcmp(response, "4")) {
-		colors[',']  = "\033[21;34;44m";       /* Blue background */
+		colors[',']  = "\033[0;34;44m";       /* Blue background */
 		colors['.']  = "\033[1;37;47m";       /* White stars */
-		colors['\''] = "\033[21;30;40m";       /* Black border */
+		colors['\''] = "\033[0;30;40m";       /* Black border */
 		colors['@']  = "\033[1;37;47m";       /* Tan poptart */
 		colors['$']  = "\033[1;35;45m";       /* Pink poptart */
 		colors['-']  = "\033[1;31;41m";       /* Red poptart */
 		colors['>']  = "\033[1;31;41m";       /* Red rainbow */
-		colors['&']  = "\033[21;33;43m";       /* Orange rainbow */
+		colors['&']  = "\033[0;33;43m";       /* Orange rainbow */
 		colors['+']  = "\033[1;33;43m";       /* Yellow Rainbow */
 		colors['#']  = "\033[1;32;42m";       /* Green rainbow */
 		colors['=']  = "\033[1;34;44m";       /* Light blue rainbow */
-		colors[';']  = "\033[21;34;44m";       /* Dark blue rainbow */
+		colors[';']  = "\033[0;34;44m";       /* Dark blue rainbow */
 		colors['*']  = "\033[1;30;40m";       /* Gray cat face */
 		colors['%']  = "\033[1;35;45m";       /* Pink cheeks */
 		output = "██";
+	} else if (!strcmp(response, "5")) {
+		colors[',']  = "\033[0;34;44m";       /* Blue background */
+		colors['.']  = "\033[1;37;47m";       /* White stars */
+		colors['\''] = "\033[0;30;40m";       /* Black border */
+		colors['@']  = "\033[1;37;47m";       /* Tan poptart */
+		colors['$']  = "\033[1;35;45m";       /* Pink poptart */
+		colors['-']  = "\033[1;31;41m";       /* Red poptart */
+		colors['>']  = "\033[1;31;41m";       /* Red rainbow */
+		colors['&']  = "\033[0;33;43m";       /* Orange rainbow */
+		colors['+']  = "\033[1;33;43m";       /* Yellow Rainbow */
+		colors['#']  = "\033[1;32;42m";       /* Green rainbow */
+		colors['=']  = "\033[1;34;44m";       /* Light blue rainbow */
+		colors[';']  = "\033[0;34;44m";       /* Dark blue rainbow */
+		colors['*']  = "\033[1;30;40m";       /* Gray cat face */
+		colors['%']  = "\033[1;35;45m";       /* Pink cheeks */
+		output = "\333\333";
+	} else if (!strcmp(response, "6")) {
+		colors[',']  = "  ";       /* Blue background */
+		colors['.']  = "**";       /* White stars */
+		colors['\''] = "##";       /* Black border */
+		colors['@']  = "##";       /* Tan poptart */
+		colors['$']  = "??";       /* Pink poptart */
+		colors['-']  = "<>";       /* Red poptart */
+		colors['>']  = "##";       /* Red rainbow */
+		colors['&']  = "==";       /* Orange rainbow */
+		colors['+']  = "--";       /* Yellow Rainbow */
+		colors['#']  = "++";       /* Green rainbow */
+		colors['=']  = "~~";       /* Light blue rainbow */
+		colors[';']  = "$$";       /* Dark blue rainbow */
+		colors['*']  = "  ";       /* Gray cat face */
+		colors['%']  = "()";       /* Pink cheeks */
+		always_escape = 1;
 	} else {
 		printf("\033[H\033[2J");
 		printf("I'm sorry, what was that?\n");
 		goto try_again;
+	}
+
+	printf("\033[H\033[2J\033[?25l");
+
+
+	int countdown_clock = 1000;
+	if (always_escape) {
+		countdown_clock = 5;
+	}
+	int k;
+	for (k = 0; k < countdown_clock; ++k) {
+		printf("\n\n\n");
+		printf("   Nyancat Telnet Server\n");
+		printf("\n");
+		printf("   written and run by \033[1;32mKevin Lange\033[1;34m @kevinlange\033[0m\n");
+		printf("\n");
+		printf("   If things don't look right, try:\n");
+		printf("      TERM=fallback telnet ...\n");
+		printf("   Or on Windows:\n");
+		printf("      telnet -t vtnt ...\n");
+		printf("\n");
+		printf("   Problems? I am also a webserver:\n");
+		printf("      \033[1;34mhttp://miku.acm.uiuc.edu\033[0m\n");
+		printf("\n");
+		printf("   Starting in %d...      \n", countdown_clock-k);
+
+		usleep(4000);
+		printf("\033[H");
 	}
 
 	printf("\033[H\033[2J\033[?25l");
@@ -941,11 +1004,15 @@ try_again:
 	while (playing) {
 		for (y = MIN_ROW; y < MAX_ROW; ++y) {
 			for (x = MIN_COL; x < MAX_COL; ++x) {
-				if (frames[i][y][x] != last && colors[frames[i][y][x]]) {
-					last = frames[i][y][x];
-					printf("%s%s", colors[frames[i][y][x]], output);
+				if (always_escape) {
+					printf("%s", colors[frames[i][y][x]]);
 				} else {
-					printf(output);
+					if (frames[i][y][x] != last && colors[frames[i][y][x]]) {
+						last = frames[i][y][x];
+						printf("%s%s", colors[frames[i][y][x]], output);
+					} else {
+						printf(output);
+					}
 				}
 			}
 			if (y != MAX_ROW - 1)
