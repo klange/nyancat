@@ -3,4 +3,4 @@
 screen -X -p 0 stuff "= RESETTING ="
 screen -X -p 0 stuff $'\012'
 
-killall cgiserver
+killall cgiserver 2>/dev/null
