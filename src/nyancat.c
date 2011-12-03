@@ -953,9 +953,9 @@ try_again:
 		colors['%']  = "\033[1;35;45m";       /* Pink cheeks */
 		output = "\333\333";
 	} else if (!strcmp(response, "6")) {
-		colors[',']  = "  ";       /* Blue background */
-		colors['.']  = "**";       /* White stars */
-		colors['\''] = "##";       /* Black border */
+		colors[',']  = "::";       /* Blue background */
+		colors['.']  = "@@";       /* White stars */
+		colors['\''] = "  ";       /* Black border */
 		colors['@']  = "##";       /* Tan poptart */
 		colors['$']  = "??";       /* Pink poptart */
 		colors['-']  = "<>";       /* Red poptart */
@@ -965,7 +965,7 @@ try_again:
 		colors['#']  = "++";       /* Green rainbow */
 		colors['=']  = "~~";       /* Light blue rainbow */
 		colors[';']  = "$$";       /* Dark blue rainbow */
-		colors['*']  = "  ";       /* Gray cat face */
+		colors['*']  = ";;";       /* Gray cat face */
 		colors['%']  = "()";       /* Pink cheeks */
 		always_escape = 1;
 	} else {
