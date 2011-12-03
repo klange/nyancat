@@ -1018,7 +1018,7 @@ try_again:
 						last = frames[i][y][x];
 						printf("%s%s", colors[frames[i][y][x]], output);
 					} else {
-						printf(output);
+						printf("%s", output);
 					}
 				}
 			}
