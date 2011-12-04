@@ -58,6 +58,9 @@ char * colors[256] = {NULL};
  */
 char * output = "  ";
 
+/* Telnet mode? */
+int telnet = 0;
+
 /*
  * These values crop the animation, as we have a full 64x64 stored,
  * but we only want to display 80x24.
@@ -74,6 +77,19 @@ char * output = "  ";
 void SIGINT_handler(int sig){
 	printf("\033[?25h");
 	exit(0);
+}
+
+void newline(int n) {
+	int i = 0;
+	for (i = 0; i < n; ++i) {
+			if (telnet) {
+				putc('\r', stdout);
+				putc(0, stdout);
+				putc('\n', stdout);
+			} else {
+				putc('\n', stdout);
+			}
+	}
 }
 
 /*
@@ -155,6 +171,7 @@ int main(int argc, char ** argv) {
 	if (argc > 1) {
 		if (!strcmp(argv[1], "-t")) {
 			/* Yes, I know, lame way to get arguments, whatever, we only want one of them. */
+			telnet = 1;
 
 			/* Set the default options */
 			set_options();
@@ -391,19 +408,23 @@ ready:
 	/* Display the MOTD */
 	int countdown_clock = 5;
 	for (k = 0; k < countdown_clock; ++k) {
-		printf("\n\n\n");
-		printf("   Nyancat Telnet Server\n");
-		printf("\n");
-		printf("   written and run by \033[1;32mKevin Lange\033[1;34m @kevinlange\033[0m\n");
-		printf("\n");
-		printf("   If things don't look right, try:\n");
-		printf("      TERM=fallback telnet ...\n");
-		printf("   Or on Windows:\n");
-		printf("      telnet -t vtnt ...\n");
-		printf("\n");
-		printf("   Problems? I am also a webserver:\n");
-		printf("      \033[1;34mhttp://miku.acm.uiuc.edu\033[0m\n");
-		printf("\n");
+		newline(3);
+		printf("   Nyancat Telnet Server");
+		newline(2);
+		printf("   written and run by \033[1;32mKevin Lange\033[1;34m @kevinlange\033[0m");
+		newline(2);
+		printf("   If things don't look right, try:");
+		newline(1);
+		printf("      TERM=fallback telnet ...");
+		newline(1);
+		printf("   Or on Windows:");
+		newline(1);
+		printf("      telnet -t vtnt ...");
+		newline(2);
+		printf("   Problems? I am also a webserver:");
+		newline(1);
+		printf("      \033[1;34mhttp://miku.acm.uiuc.edu\033[0m");
+		newline(2);
 		printf("   Starting in %d...      \n", countdown_clock-k);
 
 		fflush(stdout);
@@ -438,7 +459,7 @@ ready:
 			}
 			/* End of row, send newline */
 			if (y != MAX_ROW - 1)
-				printf("\n");
+				newline(1);
 		}
 		/* Update frame crount */
 		++i;
