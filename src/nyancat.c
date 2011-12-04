@@ -90,7 +90,10 @@ jmp_buf environment;
 /*
  * I refuse to include libm to keep this low
  * on external dependencies.
- * */
+ *
+ * Count the number of digits in a number for
+ * use with string output.
+ */
 int digits(int val) {
 	int d = 1, c;
 	if (val >= 0) for (c = 10; c <= val; c *= 10) d++;
@@ -100,7 +103,7 @@ int digits(int val) {
 
 /*
  * These values crop the animation, as we have a full 64x64 stored,
- * but we only want to display 80x24.
+ * but we only want to display 40x24 (double width).
  */
 #define MIN_ROW 20
 #define MAX_ROW 43
@@ -219,7 +222,7 @@ int main(int argc, char ** argv) {
 
 	/* I have a bad habit of being very C99, so this may not be everything */
 	/* The default terminal is ANSI */
-	char term[1024] = {'a','n','s','i'};
+	char term[1024] = {'a','n','s','i', 0};
 	int k, ttype;
 	uint32_t option = 0, done = 0, sb_mode = 0, do_echo = 0;
 	/* Various pieces for the telnet communication */
