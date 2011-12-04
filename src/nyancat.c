@@ -259,6 +259,8 @@ int main(int argc, char ** argv) {
 						sb[sb_len] = i;
 						sb_len++;
 					}
+				} else {
+					goto ready;
 				}
 			}
 		}
