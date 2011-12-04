@@ -46,6 +46,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <time.h>
+#include <setjmp.h>
 #include "telnet.h"
 
 /* The animation frames are stored separately. */
@@ -87,6 +88,18 @@ double log10(double x) {
 void SIGINT_handler(int sig){
 	printf("\033[?25h");
 	exit(0);
+}
+
+jmp_buf environment;
+
+/*
+ * Handle the alarm which breaks us off of options
+ * handling if we didn't receive a terminal
+ */
+void SIGALRM_handler(int sig) {
+	alarm(0);
+	longjmp(environment, 1);
+	/* Unreachable */
 }
 
 void newline(int n) {
@@ -200,77 +213,82 @@ int main(int argc, char ** argv) {
 				}
 			}
 
+			signal(SIGALRM, SIGALRM_handler);
 			/* Negotiate options */
-			while (!feof(stdin) && !done) {
-				unsigned char i = getchar();
-				unsigned char opt = 0;
-				if (i == IAC) {
-					i = getchar();
-					switch (i) {
-						case SE:
-							/* End of extended option mode */
-							sb_mode = 0;
-							if (sb[0] == TTYPE) {
-								strcpy(term, &sb[2]);
-								goto ready;
-							}
-							break;
-						case NOP:
-							/* No Op */
-							send_command(NOP, 0);
-							fflush(stdout);
-							break;
-						case WILL:
-						case WONT:
-							/* Will / Won't Negotiation */
-							opt = getchar();
-							if (!telnet_willack[opt]) {
-								telnet_willack[opt] = WONT;
-							}
-							send_command(telnet_willack[opt], opt);
-							fflush(stdout);
-							if ((i == WILL) && (opt == TTYPE)) {
-								/* WILL TTYPE? Great, let's do that now! */
-								printf("%c%c%c%c%c%c", IAC, SB, TTYPE, SEND, IAC, SE);
+			if (!setjmp(environment)) {
+				alarm(1);
+				while (!feof(stdin) && !done) {
+					unsigned char i = getchar();
+					unsigned char opt = 0;
+					if (i == IAC) {
+						i = getchar();
+						switch (i) {
+							case SE:
+								/* End of extended option mode */
+								sb_mode = 0;
+								if (sb[0] == TTYPE) {
+									alarm(0);
+									strcpy(term, &sb[2]);
+									goto ready;
+								}
+								break;
+							case NOP:
+								/* No Op */
+								send_command(NOP, 0);
 								fflush(stdout);
-							}
-							break;
-						case DO:
-						case DONT:
-							/* Do / Don't Negotation */
-							opt = getchar();
-							if (!telnet_options[opt]) {
-								telnet_options[opt] = DONT;
-							}
-							send_command(telnet_options[opt], opt);
-							if (opt == ECHO) {
-								/* We don't really need this, as we don't accept input, but,
-								 * in case we do in the future, set our echo mode */
-								do_echo = (i == DO);
-							}
-							fflush(stdout);
-							break;
-						case SB:
-							/* Begin Extended Option Mode */
-							sb_mode = 1;
-							sb_len  = 0;
-							memset(sb, 0, 1024);
-							break;
-						case IAC: 
-							/* Connection Closed During Negotiation */
-							done = 1;
-							break;
-						default:
-							break;
+								break;
+							case WILL:
+							case WONT:
+								/* Will / Won't Negotiation */
+								opt = getchar();
+								if (!telnet_willack[opt]) {
+									telnet_willack[opt] = WONT;
+								}
+								send_command(telnet_willack[opt], opt);
+								fflush(stdout);
+								if ((i == WILL) && (opt == TTYPE)) {
+									/* WILL TTYPE? Great, let's do that now! */
+									printf("%c%c%c%c%c%c", IAC, SB, TTYPE, SEND, IAC, SE);
+									fflush(stdout);
+								}
+								break;
+							case DO:
+							case DONT:
+								/* Do / Don't Negotation */
+								opt = getchar();
+								if (!telnet_options[opt]) {
+									telnet_options[opt] = DONT;
+								}
+								send_command(telnet_options[opt], opt);
+								if (opt == ECHO) {
+									/* We don't really need this, as we don't accept input, but,
+									 * in case we do in the future, set our echo mode */
+									do_echo = (i == DO);
+								}
+								fflush(stdout);
+								break;
+							case SB:
+								/* Begin Extended Option Mode */
+								sb_mode = 1;
+								sb_len  = 0;
+								memset(sb, 0, 1024);
+								break;
+							case IAC: 
+								/* Connection Closed During Negotiation */
+								done = 1;
+								break;
+							default:
+								break;
+						}
+					} else if (sb_mode) {
+						/* Extended Option Mode -> Accept character */
+						if (sb_len < 1023) {
+							sb[sb_len] = i;
+							sb_len++;
+						}
+					} else {
+						goto ready;
 					}
-				} else if (sb_mode) {
-					/* Extended Option Mode -> Accept character */
-					if (sb_len < 1023) {
-						sb[sb_len] = i;
-						sb_len++;
-					}
-				} else {
-					goto ready;
 				}
 			}
 		}
