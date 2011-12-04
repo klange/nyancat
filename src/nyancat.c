@@ -291,9 +291,9 @@ ready:
 			output = "\333\333";
 			break;
 		case 6:
-			colors[',']  = "  ";       /* Blue background */
-			colors['.']  = "**";       /* White stars */
-			colors['\''] = "##";       /* Black border */
+			colors[',']  = "::";       /* Blue background */
+			colors['.']  = "@@";       /* White stars */
+			colors['\''] = "  ";       /* Black border */
 			colors['@']  = "##";       /* Tan poptart */
 			colors['$']  = "??";       /* Pink poptart */
 			colors['-']  = "<>";       /* Red poptart */
@@ -303,7 +303,7 @@ ready:
 			colors['#']  = "++";       /* Green rainbow */
 			colors['=']  = "~~";       /* Light blue rainbow */
 			colors[';']  = "$$";       /* Dark blue rainbow */
-			colors['*']  = "  ";       /* Gray cat face */
+			colors['*']  = ";;";       /* Gray cat face */
 			colors['%']  = "()";       /* Pink cheeks */
 			always_escape = 1;
 			break;
