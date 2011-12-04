@@ -384,7 +384,7 @@ ready:
 	} else if (strstr(term, "rxvt")) {
 		ttype = 3; /* Accepts LINUX mode */
 	} else {
-		ttype = 2; /* Verything else */
+		ttype = 2; /* Everything else */
 	}
 
 	int always_escape = 0; /* Used for text mode */
