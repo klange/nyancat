@@ -483,7 +483,8 @@ ready:
 			printf(" ");
 			width--;
 		}
-		printf("You have nyaned for %0.0f seconds!\033[J", diff);
+		printf("\033[1;37mYou have nyaned for %0.0f seconds!\033[J", diff);
+		last = 0;
 		/* Update frame crount */
 		++i;
 		if (!frames[i]) {
