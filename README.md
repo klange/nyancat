@@ -14,11 +14,11 @@ You can run the C application standalone. It will prompt you to select a color m
 
     ./nyancat
 
-To run the telnet server, use:
+To use the telnet server, you need to add a configuration that runs:
 
-    sudo ./start.sh
+    nyancat -t
 
-(The server will only try to start on port 23, so you must be root)
+... to either an `inetd` or `xinetd` server. I am using `openbsd-inetd`, which you must give *both* arguments (`nyancat` and `-t`) to, which I found odd.
 
 ## Licenses, References, etc.
 
