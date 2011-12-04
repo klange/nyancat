@@ -565,7 +565,7 @@ ready:
 		time(&current);
 		double diff = difftime(current, start);
 		/* Now count the length of the time difference so we can center */
-		int nLen = int(diff);
+		int nLen = (int)diff;
 		int width = (80 - 29 - nLen) / 2;
 		/* Spit out some spaces so that we're actually centered */
 		while (width) {
