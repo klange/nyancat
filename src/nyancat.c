@@ -517,11 +517,15 @@ ready:
 		printf("        Or on Windows:");
 		newline(1);
 		printf("                telnet -t vtnt ...");
-		newline(3);
+		newline(2);
 		printf("        Problems? I am also a webserver:");
 		newline(1);
 		printf("                \033[1;34mhttp://miku.acm.uiuc.edu\033[0m");
-		newline(4);
+		newline(2);
+		printf("        This is a telnet server, remember your escape keys!");
+		newline(1);
+		printf("                \033[1;31m^]quit\033[0m to exit");
+		newline(2);
 		printf("        Starting in %d...                \n", countdown_clock-k);
 
 		fflush(stdout);
