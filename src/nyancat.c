@@ -213,14 +213,21 @@ int main(int argc, char ** argv) {
 				}
 			}
 
+			/* Set the alarm handler to execute the longjmp */
 			signal(SIGALRM, SIGALRM_handler);
+
 			/* Negotiate options */
 			if (!setjmp(environment)) {
+				/* We will stop handling options after one second */
 				alarm(1);
+
+				/* Let's do this */
 				while (!feof(stdin) && !done) {
+					/* Get either IAC (start command) or a regular character (break, unless in SB mode) */
 					unsigned char i = getchar();
 					unsigned char opt = 0;
 					if (i == IAC) {
+						/* If IAC, get the command */
 						i = getchar();
 						switch (i) {
 							case SE:
@@ -286,8 +293,6 @@ int main(int argc, char ** argv) {
 							sb[sb_len] = i;
 							sb_len++;
 						}
-					} else {
-						goto ready;
 					}
 				}
 			}
