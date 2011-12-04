@@ -506,23 +506,23 @@ ready:
 	int countdown_clock = 5;
 	for (k = 0; k < countdown_clock; ++k) {
 		newline(3);
-		printf("   Nyancat Telnet Server");
+		printf("                             \033[1mNyancat Telnet Server\033[0m");
 		newline(2);
-		printf("   written and run by \033[1;32mKevin Lange\033[1;34m @kevinlange\033[0m");
+		printf("                   written and run by \033[1;32mKevin Lange\033[1;34m @kevinlange\033[0m");
 		newline(2);
-		printf("   If things don't look right, try:");
+		printf("        If things don't look right, try:");
 		newline(1);
-		printf("      TERM=fallback telnet ...");
-		newline(1);
-		printf("   Or on Windows:");
-		newline(1);
-		printf("      telnet -t vtnt ...");
+		printf("                TERM=fallback telnet ...");
 		newline(2);
-		printf("   Problems? I am also a webserver:");
+		printf("        Or on Windows:");
 		newline(1);
-		printf("      \033[1;34mhttp://miku.acm.uiuc.edu\033[0m");
-		newline(2);
-		printf("   Starting in %d...      \n", countdown_clock-k);
+		printf("                telnet -t vtnt ...");
+		newline(3);
+		printf("        Problems? I am also a webserver:");
+		newline(1);
+		printf("                \033[1;34mhttp://miku.acm.uiuc.edu\033[0m");
+		newline(4);
+		printf("        Starting in %d...                \n", countdown_clock-k);
 
 		fflush(stdout);
 		usleep(400000);
