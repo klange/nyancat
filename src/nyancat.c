@@ -45,6 +45,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <time.h>
 #include "telnet.h"
 
 /* The animation frames are stored separately. */
@@ -61,12 +62,21 @@ char * output = "  ";
 /* Telnet mode? */
 int telnet = 0;
 
+/* I refuse to include libm */
+double log10(double x) {
+	int val = (int)x;
+	int d = 1, c;
+	if (val >= 0) for (c = 10; c <= val; c *= 10) d++;
+	else for (c = -10 ; c >= val; c *= 10) d++;
+	return (c < 0) ? (double)++d : (double)d;
+}
+
 /*
  * These values crop the animation, as we have a full 64x64 stored,
  * but we only want to display 80x24.
  */
 #define MIN_ROW 20
-#define MAX_ROW 44
+#define MAX_ROW 43
 #define MIN_COL 10
 #define MAX_COL 50
 
@@ -406,7 +416,6 @@ ready:
 	/* Clear the screen */
 	printf("\033[H\033[2J\033[?25l");
 
-
 	/* Display the MOTD */
 	int countdown_clock = 5;
 	for (k = 0; k < countdown_clock; ++k) {
@@ -437,6 +446,10 @@ ready:
 	/* Clear the screen again */
 	printf("\033[H\033[2J\033[?25l");
 
+	/* Store the start time */
+	time_t start, current;
+	time(&start);
+
 	int playing = 1;
 	size_t i = 0;
 	char last = 0;
@@ -460,9 +473,17 @@ ready:
 				}
 			}
 			/* End of row, send newline */
-			if (y != MAX_ROW - 1)
-				newline(1);
+			newline(1);
 		}
+		time(&current);
+		double diff = difftime(current, start);
+		double nLen = log10(diff);
+		int width = (80 - 29 - (int)nLen) / 2;
+		while (width) {
+			printf(" ");
+			width--;
+		}
+		printf("You have nyaned for %0.0f seconds!\033[J", diff);
 		/* Update frame crount */
 		++i;
 		if (!frames[i]) {
