@@ -17,10 +17,8 @@ $(distdir): FORCE
 	cp Makefile $(distdir)
 	cp src/Makefile $(distdir)/src
 	cp src/nyancat.c $(distdir)/src
-	cp src/nyancat.py $(distdir)/src
-	cp src/telnetsrvlib.py $(distdir)/src
-	cp src/reset.sh $(distdir)/src
-	cp src/run.sh $(distdir)/src
+	cp src/animation.h $(distdir)/src
+	cp src/telnet.h $(distdir)/src
 
 FORCE:
 	-rm $(distdir).tar.gz >/dev/null 2>&1
