@@ -115,7 +115,7 @@ int digits(int val) {
  * (^C) so that we can restore the cursor.
  */
 void SIGINT_handler(int sig){
-	printf("\033[?25h");
+	printf("\033[?25h\033[0m");
 	exit(0);
 }
 
