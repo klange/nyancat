@@ -413,6 +413,11 @@ ready:
 			break;
 	}
 
+	/* Attempt to set terminal title */
+	printf("\033kNyanyanyanyanyanyanya...\033\134");
+	printf("\033]1;Nyanyanyanyanyanyanya...\007");
+	printf("\033]2;Nyanyanyanyanyanyanya...\007");
+
 	/* Clear the screen */
 	printf("\033[H\033[2J\033[?25l");
 
