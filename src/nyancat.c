@@ -47,29 +47,55 @@
 #include <signal.h>
 #include <time.h>
 #include <setjmp.h>
+
+/*
+ * telnet.h contains some #defines for the various
+ * commands, escape characters, and modes for telnet.
+ * (it surprises some people that telnet is, really,
+ *  a protocol, and not just raw text transmission)
+ */
 #include "telnet.h"
 
-/* The animation frames are stored separately. */
+/*
+ * The animation frames are stored separately in
+ * this header so they don't clutter the core source
+ */
 #include "animation.h"
 
-/* The color palette is not yet set */
+/*
+ * Color palette to use for final output
+ * Specifically, this should be either control sequences
+ * or raw characters (ie, for vt220 mode)
+ */
 char * colors[256] = {NULL};
+
 /*
  * For most modes, we ouput spaces, but for some
- * we will use block characters.
+ * we will use block characters (or even nothing)
  */
 char * output = "  ";
 
-/* Telnet mode? */
+/*
+ * Are we currently in telnet mode?
+ */
 int telnet = 0;
 
-/* I refuse to include libm */
-double log10(double x) {
-	int val = (int)x;
+/*
+ * Environment to use for setjmp/longjmp
+ * when breaking out of options handler
+ */
+jmp_buf environment;
+
+
+/*
+ * I refuse to include libm to keep this low
+ * on external dependencies.
+ * */
+int digits(int val) {
 	int d = 1, c;
 	if (val >= 0) for (c = 10; c <= val; c *= 10) d++;
 	else for (c = -10 ; c >= val; c *= 10) d++;
-	return (c < 0) ? (double)++d : (double)d;
+	return (c < 0) ? ++d : d;
 }
 
 /*
@@ -90,8 +116,6 @@ void SIGINT_handler(int sig){
 	exit(0);
 }
 
-jmp_buf environment;
-
 /*
  * Handle the alarm which breaks us off of options
  * handling if we didn't receive a terminal
@@ -102,16 +126,23 @@ void SIGALRM_handler(int sig) {
 	/* Unreachable */
 }
 
+/*
+ * Telnet requires us to send a specific sequence
+ * for a line break (\r\000\n), so let's make it happy.
+ */
 void newline(int n) {
 	int i = 0;
 	for (i = 0; i < n; ++i) {
-			if (telnet) {
-				putc('\r', stdout);
-				putc(0, stdout);
-				putc('\n', stdout);
-			} else {
-				putc('\n', stdout);
-			}
+		/* We will send `n` linefeeds to the client */
+		if (telnet) {
+			/* Send the telnet newline sequence */
+			putc('\r', stdout);
+			putc(0, stdout);
+			putc('\n', stdout);
+		} else {
+			/* Send a regular line feed */
+			putc('\n', stdout);
+		}
 	}
 }
 
@@ -155,6 +186,10 @@ void set_options() {
 	telnet_willack[NEW_ENVIRON] = DO;
 }
 
+/*
+ * Send a command (cmd) to the telnet client
+ * Also does special handling for DO/DONT/WILL/WONT
+ */
 void send_command(int cmd, int opt) {
 	/* Send a command to the telnet client */
 	if (cmd == DO || cmd == DONT) {
@@ -234,6 +269,8 @@ int main(int argc, char ** argv) {
 								/* End of extended option mode */
 								sb_mode = 0;
 								if (sb[0] == TTYPE) {
+									/* This was a response to the TTYPE command, meaning
+									 * that this should be a terminal type */
 									alarm(0);
 									strcpy(term, &sb[2]);
 									goto ready;
@@ -249,6 +286,7 @@ int main(int argc, char ** argv) {
 								/* Will / Won't Negotiation */
 								opt = getchar();
 								if (!telnet_willack[opt]) {
+									/* We default to WONT */
 									telnet_willack[opt] = WONT;
 								}
 								send_command(telnet_willack[opt], opt);
@@ -264,6 +302,7 @@ int main(int argc, char ** argv) {
 								/* Do / Don't Negotation */
 								opt = getchar();
 								if (!telnet_options[opt]) {
+									/* We default to DONT */
 									telnet_options[opt] = DONT;
 								}
 								send_command(telnet_options[opt], opt);
@@ -281,7 +320,7 @@ int main(int argc, char ** argv) {
 								memset(sb, 0, 1024);
 								break;
 							case IAC: 
-								/* Connection Closed During Negotiation */
+								/* IAC IAC? That's probably not right. */
 								done = 1;
 								break;
 							default:
@@ -290,6 +329,13 @@ int main(int argc, char ** argv) {
 					} else if (sb_mode) {
 						/* Extended Option Mode -> Accept character */
 						if (sb_len < 1023) {
+							/* Append this character to the SB string,
+							 * but only if it doesn't put us over
+							 * our limit; honestly, we shouldn't hit
+							 * the limit, as we're only collecting characters
+							 * for a terminal type, but better safe than
+							 * sorry (and vulernable).
+							 */
 							sb[sb_len] = i;
 							sb_len++;
 						}
@@ -298,11 +344,20 @@ int main(int argc, char ** argv) {
 			}
 		}
 	} else {
-		/* Otherwise, we were run standalone, find the terminal type from the environement */
+		/* We are running standalone, retrieve the
+		 * terminal type from the environment. */
 		char * nterm = getenv("TERM");
 		strcpy(term, nterm);
 	}
 
+	/*
+	 * Labels. Yes, and I used a goto.
+	 * If you're going to complain about this, you
+	 * really need to reevaluate your approach to getting
+	 * things done. This works, it works well, and there
+	 * is absolutely, positively nothing wrong with using
+	 * goto in C, so I'm going to do it.
+	 */
 ready:
 
 	/* Convert the entire terminal string to lower case */
@@ -478,10 +533,10 @@ ready:
 	time_t start, current;
 	time(&start);
 
-	int playing = 1;
-	size_t i = 0;
-	char last = 0;
-	size_t y, x;
+	int playing = 1; /* Animation should continue [left here for modifications] */
+	size_t i = 0;    /* Current frame # */
+	char last = 0;   /* Last color index rendered */
+	size_t y, x;     /* x/y coordinates of what we're drawing */
 	while (playing) {
 		/* Render the frame */
 		for (y = MIN_ROW; y < MAX_ROW; ++y) {
@@ -503,15 +558,23 @@ ready:
 			/* End of row, send newline */
 			newline(1);
 		}
+		/* Get the current time for the "You have nyaned..." string */
 		time(&current);
 		double diff = difftime(current, start);
-		double nLen = log10(diff);
-		int width = (80 - 29 - (int)nLen) / 2;
+		/* Now count the length of the time difference so we can center */
+		int nLen = int(diff);
+		int width = (80 - 29 - nLen) / 2;
+		/* Spit out some spaces so that we're actually centered */
 		while (width) {
 			printf(" ");
 			width--;
 		}
+		/* You have nyaned for [n] seconds!
+		 * The \033[J ensures that the rest of the line has the dark blue
+		 * background, and the \033[1;37m ensures that our text is bright white
+		 */
 		printf("\033[1;37mYou have nyaned for %0.0f seconds!\033[J", diff);
+		/* Reset the last color so that the escape sequences rewrite */
 		last = 0;
 		/* Update frame crount */
 		++i;
