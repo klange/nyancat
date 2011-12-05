@@ -368,16 +368,6 @@ int main(int argc, char ** argv) {
 		
 		if(terminal_width > 80) terminal_width = 80;
 	}
-	
-	/*
-	 * Labels. Yes, and I used a goto.
-	 * If you're going to complain about this, you
-	 * really need to reevaluate your approach to getting
-	 * things done. This works, it works well, and there
-	 * is absolutely, positively nothing wrong with using
-	 * goto in C, so I'm going to do it.
-	 */
-ready:
 
 	/* Convert the entire terminal string to lower case */
 	for (k = 0; k < strlen(term); ++k) {
