@@ -10,7 +10,7 @@ First build the C application:
 
     make && cd src
 
-You can run the C application standalone. It will prompt you to select a color mode.
+You can run the C application standalone.
 
     ./nyancat
 
