@@ -47,6 +47,7 @@
 #include <signal.h>
 #include <time.h>
 #include <setjmp.h>
+#include <sys/ioctl.h>
 
 /*
  * telnet.h contains some #defines for the various
@@ -223,6 +224,7 @@ int main(int argc, char ** argv) {
 	/* I have a bad habit of being very C99, so this may not be everything */
 	/* The default terminal is ANSI */
 	char term[1024] = {'a','n','s','i', 0};
+	int terminal_width = 80;
 	int k, ttype;
 	uint32_t option = 0, done = 0, sb_mode = 0, do_echo = 0;
 	/* Various pieces for the telnet communication */
@@ -351,6 +353,13 @@ int main(int argc, char ** argv) {
 		 * terminal type from the environment. */
 		char * nterm = getenv("TERM");
 		strcpy(term, nterm);
+		
+		/* Also get the number of columns, but not above 80 */
+		struct winsize w;
+		ioctl(0, TIOCGWINSZ, &w);
+		terminal_width = w.ws_col;
+		
+		if(terminal_width > 80) terminal_width = 80;
 	}
 
 	/*
@@ -383,6 +392,8 @@ ready:
 		ttype = 4; /* Unicode fallback */
 	} else if (strstr(term, "rxvt")) {
 		ttype = 3; /* Accepts LINUX mode */
+	} else if (strstr(term, "vt100") && terminal_width == 40) {
+		ttype = 7; /* No color support, only 40 columns */
 	} else {
 		ttype = 2; /* Everything else */
 	}
@@ -490,6 +501,24 @@ ready:
 			colors['%']  = "()";             /* Pink cheeks */
 			always_escape = 1;
 			break;
+		case 7:
+			colors[',']  = ".";             /* Blue background */
+			colors['.']  = "@";             /* White stars */
+			colors['\''] = " ";             /* Black border */
+			colors['@']  = "#";             /* Tan poptart */
+			colors['$']  = "?";             /* Pink poptart */
+			colors['-']  = "O";             /* Red poptart */
+			colors['>']  = "#";             /* Red rainbow */
+			colors['&']  = "=";             /* Orange rainbow */
+			colors['+']  = "-";             /* Yellow Rainbow */
+			colors['#']  = "+";             /* Green rainbow */
+			colors['=']  = "~";             /* Light blue rainbow */
+			colors[';']  = "$";             /* Dark blue rainbow */
+			colors['*']  = ";";             /* Gray cat face */
+			colors['%']  = "o";             /* Pink cheeks */
+			always_escape = 1;
+			terminal_width = 40;
+			break;
 		default:
 			break;
 	}
@@ -570,7 +599,7 @@ ready:
 		double diff = difftime(current, start);
 		/* Now count the length of the time difference so we can center */
 		int nLen = digits((int)diff);
-		int width = (80 - 29 - nLen) / 2;
+		int width = (terminal_width - 29 - nLen) / 2;
 		/* Spit out some spaces so that we're actually centered */
 		while (width > 0) {
 			printf(" ");
@@ -578,9 +607,12 @@ ready:
 		}
 		/* You have nyaned for [n] seconds!
 		 * The \033[J ensures that the rest of the line has the dark blue
-		 * background, and the \033[1;37m ensures that our text is bright white
+		 * background, and the \033[1;37m ensures that our text is bright white.
+		 * The \033[0m prevents the Apple ][ from flipping everything, but
+		 * makes the whole nyancat less bright on the vt220
 		 */
-		printf("\033[1;37mYou have nyaned for %0.0f seconds!\033[J", diff);
+		printf("\033[1;37mYou have nyaned for %0.0f seconds!\033[J\033[0m", diff);
+		
 		/* Reset the last color so that the escape sequences rewrite */
 		last = 0;
 		/* Update frame crount */
