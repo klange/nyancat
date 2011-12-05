@@ -1,8 +1,13 @@
 /*
  * Copyright (c) 2011 Kevin Lange.  All rights reserved.
  *
- * Developed by: Kevin Lange
- *               http://github.com/klange/nyancat
+ * Developed by:            Kevin Lange
+ *                          http://github.com/klange/nyancat
+ *                          http://miku.acm.uiuc.edu
+ * 
+ * 40-column support by:    Peter Hazenberg
+ *                          http://github.com/Peetz0r/nyancat
+ *                          http://peter.haas-en-berg.nl
  *
  * This is a simple telnet server / standalone application which renders the
  * classic Nyan Cat (or "poptart cat") to your terminal.
