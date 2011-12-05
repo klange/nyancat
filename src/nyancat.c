@@ -121,7 +121,7 @@ int digits(int val) {
  * (^C) so that we can restore the cursor.
  */
 void SIGINT_handler(int sig){
-	printf("\033[?25h\033[0m");
+	printf("\\033[?25h\033[0m");
 	exit(0);
 }
 
@@ -366,18 +366,19 @@ int main(int argc, char ** argv) {
 		char * nterm = getenv("TERM");
 		strcpy(term, nterm);
 		
-		/* Also get the number of columns, but not above 80 */
+		/* Also get the number of columns */
 		struct winsize w;
 		ioctl(0, TIOCGWINSZ, &w);
 		terminal_width = w.ws_col;
-		
-		if(terminal_width > 80) terminal_width = 80;
 	}
 
 	/* Convert the entire terminal string to lower case */
 	for (k = 0; k < strlen(term); ++k) {
 		term[k] = tolower(term[k]);
 	}
+	
+	/* We don't want terminals wider than 80 columns */
+	if(terminal_width > 80) terminal_width = 80;
 
 	/* Do our terminal detection */
 	if (strstr(term, "xterm")) {
