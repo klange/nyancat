@@ -180,8 +180,8 @@ void set_options() {
 	telnet_willack[ECHO]  = DO;
 	/* The client can set a graphics mode */
 	telnet_willack[SGA]   = DO;
-	/* The client should not change the window size */
-	telnet_willack[NAWS]  = DONT;
+	/* The client should not change, but it should tell us its window size */
+	telnet_willack[NAWS]  = DO;
 	/* The client should tell us its terminal type (very important) */
 	telnet_willack[TTYPE] = DO;
 	/* No linemode */
@@ -262,7 +262,7 @@ int main(int argc, char ** argv) {
 				alarm(1);
 
 				/* Let's do this */
-				while (!feof(stdin) && !done) {
+				while (!feof(stdin) && done < 2) {
 					/* Get either IAC (start command) or a regular character (break, unless in SB mode) */
 					unsigned char i = getchar();
 					unsigned char opt = 0;
@@ -278,7 +278,14 @@ int main(int argc, char ** argv) {
 									 * that this should be a terminal type */
 									alarm(0);
 									strcpy(term, &sb[2]);
-									goto ready;
+									done++;
+								}
+								else if (sb[0] == NAWS) {
+									/* This was a response to the NAWS command, meaning
+									 * that this should be a window size */
+									alarm(0);
+									terminal_width = sb[2];
+									done++;
 								}
 								break;
 							case NOP:
@@ -326,7 +333,7 @@ int main(int argc, char ** argv) {
 								break;
 							case IAC: 
 								/* IAC IAC? That's probably not right. */
-								done = 1;
+								done = 2;
 								break;
 							default:
 								break;
@@ -338,7 +345,7 @@ int main(int argc, char ** argv) {
 							 * but only if it doesn't put us over
 							 * our limit; honestly, we shouldn't hit
 							 * the limit, as we're only collecting characters
-							 * for a terminal type, but better safe than
+							 * for a terminal type or window size, but better safe than
 							 * sorry (and vulernable).
 							 */
 							sb[sb_len] = i;
@@ -361,7 +368,7 @@ int main(int argc, char ** argv) {
 		
 		if(terminal_width > 80) terminal_width = 80;
 	}
-
+	
 	/*
 	 * Labels. Yes, and I used a goto.
 	 * If you're going to complain about this, you
