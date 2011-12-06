@@ -118,10 +118,10 @@ int digits(int val) {
 
 /*
  * In the standalone mode, we want to handle an interrupt signal
- * (^C) so that we can restore the cursor.
+ * (^C) so that we can restore the cursor and clear the terminal.
  */
 void SIGINT_handler(int sig){
-	printf("\033[?25h\033[0m");
+	printf("\033[?25h\033[0m\033[H\033[2J");
 	exit(0);
 }
 
