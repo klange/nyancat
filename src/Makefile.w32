@@ -1,0 +1,16 @@
+CC = gcc
+OBJECTS = nyancat.o
+
+all: nyancat.exe
+
+nyancat.exe: $(OBJECTS)
+	$(CC) $(LFLAGS) $(OBJECTS) -o $@ -lwinmm
+
+clean:
+	-rm -f $(OBJECTS) nyancat
+
+check: all
+	# Unit tests go here. None currently.
+	@echo "*** ALL TESTS PASSED ***"
+
+.PHONY: all clean check

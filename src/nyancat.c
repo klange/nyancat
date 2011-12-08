@@ -110,6 +110,10 @@ int digits(int val) {
 #define MIN_COL 10
 #define MAX_COL 50
 
+#if defined(_WIN32) && !defined(__CYGWIN__)
+# include "nyanw32.h"
+#endif
+
 /*
  * In the standalone mode, we want to handle an interrupt signal
  * (^C) so that we can restore the cursor.
@@ -219,7 +223,6 @@ void send_command(int cmd, int opt) {
 
 
 int main(int argc, char ** argv) {
-
 	/* I have a bad habit of being very C99, so this may not be everything */
 	/* The default terminal is ANSI */
 	char term[1024] = {'a','n','s','i', 0};
@@ -350,7 +353,9 @@ int main(int argc, char ** argv) {
 		/* We are running standalone, retrieve the
 		 * terminal type from the environment. */
 		char * nterm = getenv("TERM");
-		strcpy(term, nterm);
+		if (nterm) {
+			strcpy(term, nterm);
+		}
 	}
 
 	/*
