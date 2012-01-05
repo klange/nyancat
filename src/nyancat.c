@@ -1,8 +1,13 @@
 /*
  * Copyright (c) 2011 Kevin Lange.  All rights reserved.
  *
- * Developed by: Kevin Lange
- *               http://github.com/klange/nyancat
+ * Developed by:            Kevin Lange
+ *                          http://github.com/klange/nyancat
+ *                          http://miku.acm.uiuc.edu
+ * 
+ * 40-column support by:    Peter Hazenberg
+ *                          http://github.com/Peetz0r/nyancat
+ *                          http://peter.haas-en-berg.nl
  *
  * This is a simple telnet server / standalone application which renders the
  * classic Nyan Cat (or "poptart cat") to your terminal.
@@ -47,6 +52,7 @@
 #include <signal.h>
 #include <time.h>
 #include <setjmp.h>
+#include <sys/ioctl.h>
 
 /*
  * telnet.h contains some #defines for the various
@@ -112,10 +118,10 @@ int digits(int val) {
 
 /*
  * In the standalone mode, we want to handle an interrupt signal
- * (^C) so that we can restore the cursor.
+ * (^C) so that we can restore the cursor and clear the terminal.
  */
 void SIGINT_handler(int sig){
-	printf("\033[?25h\033[0m");
+	printf("\033[?25h\033[0m\033[H\033[2J");
 	exit(0);
 }
 
@@ -179,8 +185,8 @@ void set_options() {
 	telnet_willack[ECHO]  = DO;
 	/* The client can set a graphics mode */
 	telnet_willack[SGA]   = DO;
-	/* The client should not change the window size */
-	telnet_willack[NAWS]  = DONT;
+	/* The client should not change, but it should tell us its window size */
+	telnet_willack[NAWS]  = DO;
 	/* The client should tell us its terminal type (very important) */
 	telnet_willack[TTYPE] = DO;
 	/* No linemode */
@@ -223,6 +229,7 @@ int main(int argc, char ** argv) {
 	/* I have a bad habit of being very C99, so this may not be everything */
 	/* The default terminal is ANSI */
 	char term[1024] = {'a','n','s','i', 0};
+	int terminal_width = 80;
 	int k, ttype;
 	uint32_t option = 0, done = 0, sb_mode = 0, do_echo = 0;
 	/* Various pieces for the telnet communication */
@@ -260,7 +267,7 @@ int main(int argc, char ** argv) {
 				alarm(1);
 
 				/* Let's do this */
-				while (!feof(stdin) && !done) {
+				while (!feof(stdin) && done < 2) {
 					/* Get either IAC (start command) or a regular character (break, unless in SB mode) */
 					unsigned char i = getchar();
 					unsigned char opt = 0;
@@ -276,7 +283,14 @@ int main(int argc, char ** argv) {
 									 * that this should be a terminal type */
 									alarm(0);
 									strcpy(term, &sb[2]);
-									goto ready;
+									done++;
+								}
+								else if (sb[0] == NAWS) {
+									/* This was a response to the NAWS command, meaning
+									 * that this should be a window size */
+									alarm(0);
+									terminal_width = sb[2];
+									done++;
 								}
 								break;
 							case NOP:
@@ -324,7 +338,7 @@ int main(int argc, char ** argv) {
 								break;
 							case IAC: 
 								/* IAC IAC? That's probably not right. */
-								done = 1;
+								done = 2;
 								break;
 							default:
 								break;
@@ -336,7 +350,7 @@ int main(int argc, char ** argv) {
 							 * but only if it doesn't put us over
 							 * our limit; honestly, we shouldn't hit
 							 * the limit, as we're only collecting characters
-							 * for a terminal type, but better safe than
+							 * for a terminal type or window size, but better safe than
 							 * sorry (and vulernable).
 							 */
 							sb[sb_len] = i;
@@ -351,22 +365,20 @@ int main(int argc, char ** argv) {
 		 * terminal type from the environment. */
 		char * nterm = getenv("TERM");
 		strcpy(term, nterm);
+		
+		/* Also get the number of columns */
+		struct winsize w;
+		ioctl(0, TIOCGWINSZ, &w);
+		terminal_width = w.ws_col;
 	}
-
-	/*
-	 * Labels. Yes, and I used a goto.
-	 * If you're going to complain about this, you
-	 * really need to reevaluate your approach to getting
-	 * things done. This works, it works well, and there
-	 * is absolutely, positively nothing wrong with using
-	 * goto in C, so I'm going to do it.
-	 */
-ready:
 
 	/* Convert the entire terminal string to lower case */
 	for (k = 0; k < strlen(term); ++k) {
 		term[k] = tolower(term[k]);
 	}
+	
+	/* We don't want terminals wider than 80 columns */
+	if(terminal_width > 80) terminal_width = 80;
 
 	/* Do our terminal detection */
 	if (strstr(term, "xterm")) {
@@ -383,6 +395,8 @@ ready:
 		ttype = 4; /* Unicode fallback */
 	} else if (strstr(term, "rxvt")) {
 		ttype = 3; /* Accepts LINUX mode */
+	} else if (strstr(term, "vt100") && terminal_width == 40) {
+		ttype = 7; /* No color support, only 40 columns */
 	} else {
 		ttype = 2; /* Everything else */
 	}
@@ -490,6 +504,24 @@ ready:
 			colors['%']  = "()";             /* Pink cheeks */
 			always_escape = 1;
 			break;
+		case 7:
+			colors[',']  = ".";             /* Blue background */
+			colors['.']  = "@";             /* White stars */
+			colors['\''] = " ";             /* Black border */
+			colors['@']  = "#";             /* Tan poptart */
+			colors['$']  = "?";             /* Pink poptart */
+			colors['-']  = "O";             /* Red poptart */
+			colors['>']  = "#";             /* Red rainbow */
+			colors['&']  = "=";             /* Orange rainbow */
+			colors['+']  = "-";             /* Yellow Rainbow */
+			colors['#']  = "+";             /* Green rainbow */
+			colors['=']  = "~";             /* Light blue rainbow */
+			colors[';']  = "$";             /* Dark blue rainbow */
+			colors['*']  = ";";             /* Gray cat face */
+			colors['%']  = "o";             /* Pink cheeks */
+			always_escape = 1;
+			terminal_width = 40;
+			break;
 		default:
 			break;
 	}
@@ -570,7 +602,7 @@ ready:
 		double diff = difftime(current, start);
 		/* Now count the length of the time difference so we can center */
 		int nLen = digits((int)diff);
-		int width = (80 - 29 - nLen) / 2;
+		int width = (terminal_width - 29 - nLen) / 2;
 		/* Spit out some spaces so that we're actually centered */
 		while (width > 0) {
 			printf(" ");
@@ -578,9 +610,12 @@ ready:
 		}
 		/* You have nyaned for [n] seconds!
 		 * The \033[J ensures that the rest of the line has the dark blue
-		 * background, and the \033[1;37m ensures that our text is bright white
+		 * background, and the \033[1;37m ensures that our text is bright white.
+		 * The \033[0m prevents the Apple ][ from flipping everything, but
+		 * makes the whole nyancat less bright on the vt220
 		 */
-		printf("\033[1;37mYou have nyaned for %0.0f seconds!\033[J", diff);
+		printf("\033[1;37mYou have nyaned for %0.0f seconds!\033[J\033[0m", diff);
+		
 		/* Reset the last color so that the escape sequences rewrite */
 		last = 0;
 		/* Update frame crount */
