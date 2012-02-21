@@ -364,7 +364,8 @@ int main(int argc, char ** argv) {
 		/* We are running standalone, retrieve the
 		 * terminal type from the environment. */
 		char * nterm = getenv("TERM");
-		strcpy(term, nterm);
+		if (nterm)
+			strcpy(term, nterm);
 		
 		/* Also get the number of columns */
 		struct winsize w;
