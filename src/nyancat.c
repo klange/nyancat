@@ -49,6 +49,7 @@
  * WITH THE SOFTWARE.
  */
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
