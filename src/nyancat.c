@@ -49,6 +49,7 @@
  * WITH THE SOFTWARE.
  */
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -58,6 +59,13 @@
 #include <time.h>
 #include <setjmp.h>
 #include <sys/ioctl.h>
+
+#ifndef TIOCGWINSZ
+#include <termios.h>
+#ifdef ECHO
+#undef ECHO
+#endif
+#endif
 
 /*
  * telnet.h contains some #defines for the various
