@@ -59,6 +59,13 @@
 #include <setjmp.h>
 #include <sys/ioctl.h>
 
+#ifndef TIOCGWINSZ
+#include <termios.h>
+#ifdef ECHO
+#undef ECHO
+#endif
+#endif
+
 /*
  * telnet.h contains some #defines for the various
  * commands, escape characters, and modes for telnet.
