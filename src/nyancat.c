@@ -59,6 +59,7 @@
 #include <time.h>
 #include <setjmp.h>
 #include <sys/ioctl.h>
+#include <getopt.h>
 
 #ifndef TIOCGWINSZ
 #include <termios.h>
@@ -236,6 +237,17 @@ void send_command(int cmd, int opt) {
 	}
 }
 
+void usage(char * argv[]) {
+	printf(
+			"Terminal Nyancat\n"
+			"\n"
+			"usage: %s [-h] [-t] [-i] \n"
+			"\n"
+			" -i --intro     \033[3mShow the introduction / about informaiton at startup.\033[0m\n"
+			" -t --telnet    \033[3mTelnet mode.\033[0m\n",
+			" -h --help      \033[3mShow this help message.\033[0m\n",
+			argv[0]);
+}
 
 int main(int argc, char ** argv) {
 
@@ -249,126 +261,160 @@ int main(int argc, char ** argv) {
 	char sb[1024] = {0};
 	char sb_len   = 0;
 
-	if (argc > 1) {
-		if (!strcmp(argv[1], "-t")) {
-			/* Yes, I know, lame way to get arguments, whatever, we only want one of them. */
-			telnet = 1;
+	char show_intro = 0;
 
-			/* Set the default options */
-			set_options();
+	/* Long option names */
+	static struct option long_opts[] = {
+		{"help",   no_argument,    0, 'h'},
+		{"telnet", no_argument,    0, 't'},
+		{"intro",  no_argument,    0, 'i'},
+		{0,0,0,0}
+	};
 
-			/* Let the client know what we're using */
-			for (option = 0; option < 256; option++) {
-				if (telnet_options[option]) {
-					send_command(telnet_options[option], option);
-					fflush(stdout);
-				}
+	/* Process arguments */
+	int index, c;
+	while ((c = getopt_long(argc, argv, "hit", long_opts, &index)) != -1) {
+		if (!c) {
+			if (long_opts[index].flag == 0) {
+				c = long_opts[index].val;
 			}
-			for (option = 0; option < 256; option++) {
-				if (telnet_willack[option]) {
-					send_command(telnet_willack[option], option);
-					fflush(stdout);
-				}
+		}
+		switch (c) {
+			case 'i': /* Show introduction */
+				show_intro = 1;
+				break;
+			case 't': /* Expect telnet bits */
+				telnet = 1;
+				break;
+			case 'h': /* Show help and exit */
+				usage(argv);
+				exit(0);
+				break;
+			default:
+				break;
+		}
+	}
+
+	if (telnet) {
+		/* Telnet mode */
+
+		/* Intro is implied by telnet mode, so override whatever was asked for. */
+		show_intro = 1;
+
+		/* Set the default options */
+		set_options();
+
+		/* Let the client know what we're using */
+		for (option = 0; option < 256; option++) {
+			if (telnet_options[option]) {
+				send_command(telnet_options[option], option);
+				fflush(stdout);
 			}
+		}
+		for (option = 0; option < 256; option++) {
+			if (telnet_willack[option]) {
+				send_command(telnet_willack[option], option);
+				fflush(stdout);
+			}
+		}
 
-			/* Set the alarm handler to execute the longjmp */
-			signal(SIGALRM, SIGALRM_handler);
+		/* Set the alarm handler to execute the longjmp */
+		signal(SIGALRM, SIGALRM_handler);
 
-			/* Negotiate options */
-			if (!setjmp(environment)) {
-				/* We will stop handling options after one second */
-				alarm(1);
+		/* Negotiate options */
+		if (!setjmp(environment)) {
+			/* We will stop handling options after one second */
+			alarm(1);
 
-				/* Let's do this */
-				while (!feof(stdin) && done < 2) {
-					/* Get either IAC (start command) or a regular character (break, unless in SB mode) */
-					unsigned char i = getchar();
-					unsigned char opt = 0;
-					if (i == IAC) {
-						/* If IAC, get the command */
-						i = getchar();
-						switch (i) {
-							case SE:
-								/* End of extended option mode */
-								sb_mode = 0;
-								if (sb[0] == TTYPE) {
-									/* This was a response to the TTYPE command, meaning
-									 * that this should be a terminal type */
-									alarm(0);
-									strcpy(term, &sb[2]);
-									done++;
-								}
-								else if (sb[0] == NAWS) {
-									/* This was a response to the NAWS command, meaning
-									 * that this should be a window size */
-									alarm(0);
-									terminal_width = sb[2];
-									done++;
-								}
-								break;
-							case NOP:
-								/* No Op */
-								send_command(NOP, 0);
+			/* Let's do this */
+			while (!feof(stdin) && done < 2) {
+				/* Get either IAC (start command) or a regular character (break, unless in SB mode) */
+				unsigned char i = getchar();
+				unsigned char opt = 0;
+				if (i == IAC) {
+					/* If IAC, get the command */
+					i = getchar();
+					switch (i) {
+						case SE:
+							/* End of extended option mode */
+							sb_mode = 0;
+							if (sb[0] == TTYPE) {
+								/* This was a response to the TTYPE command, meaning
+								 * that this should be a terminal type */
+								alarm(0);
+								strcpy(term, &sb[2]);
+								done++;
+							}
+							else if (sb[0] == NAWS) {
+								/* This was a response to the NAWS command, meaning
+								 * that this should be a window size */
+								alarm(0);
+								terminal_width = sb[2];
+								done++;
+							}
+							break;
+						case NOP:
+							/* No Op */
+							send_command(NOP, 0);
+							fflush(stdout);
+							break;
+						case WILL:
+						case WONT:
+							/* Will / Won't Negotiation */
+							opt = getchar();
+							if (!telnet_willack[opt]) {
+								/* We default to WONT */
+								telnet_willack[opt] = WONT;
+							}
+							send_command(telnet_willack[opt], opt);
+							fflush(stdout);
+							if ((i == WILL) && (opt == TTYPE)) {
+								/* WILL TTYPE? Great, let's do that now! */
+								printf("%c%c%c%c%c%c", IAC, SB, TTYPE, SEND, IAC, SE);
 								fflush(stdout);
-								break;
-							case WILL:
-							case WONT:
-								/* Will / Won't Negotiation */
-								opt = getchar();
-								if (!telnet_willack[opt]) {
-									/* We default to WONT */
-									telnet_willack[opt] = WONT;
-								}
-								send_command(telnet_willack[opt], opt);
-								fflush(stdout);
-								if ((i == WILL) && (opt == TTYPE)) {
-									/* WILL TTYPE? Great, let's do that now! */
-									printf("%c%c%c%c%c%c", IAC, SB, TTYPE, SEND, IAC, SE);
-									fflush(stdout);
-								}
-								break;
-							case DO:
-							case DONT:
-								/* Do / Don't Negotation */
-								opt = getchar();
-								if (!telnet_options[opt]) {
-									/* We default to DONT */
-									telnet_options[opt] = DONT;
-								}
-								send_command(telnet_options[opt], opt);
-								if (opt == ECHO) {
-									/* We don't really need this, as we don't accept input, but,
-									 * in case we do in the future, set our echo mode */
-									do_echo = (i == DO);
-								}
-								fflush(stdout);
-								break;
-							case SB:
-								/* Begin Extended Option Mode */
-								sb_mode = 1;
-								sb_len  = 0;
-								memset(sb, 0, 1024);
-								break;
-							case IAC: 
-								/* IAC IAC? That's probably not right. */
-								done = 2;
-								break;
-							default:
-								break;
-						}
-					} else if (sb_mode) {
-						/* Extended Option Mode -> Accept character */
-						if (sb_len < 1023) {
-							/* Append this character to the SB string,
-							 * but only if it doesn't put us over
-							 * our limit; honestly, we shouldn't hit
-							 * the limit, as we're only collecting characters
-							 * for a terminal type or window size, but better safe than
-							 * sorry (and vulernable).
-							 */
-							sb[sb_len] = i;
-							sb_len++;
-						}
+							}
+							break;
+						case DO:
+						case DONT:
+							/* Do / Don't Negotation */
+							opt = getchar();
+							if (!telnet_options[opt]) {
+								/* We default to DONT */
+								telnet_options[opt] = DONT;
+							}
+							send_command(telnet_options[opt], opt);
+							if (opt == ECHO) {
+								/* We don't really need this, as we don't accept input, but,
+								 * in case we do in the future, set our echo mode */
+								do_echo = (i == DO);
+							}
+							fflush(stdout);
+							break;
+						case SB:
+							/* Begin Extended Option Mode */
+							sb_mode = 1;
+							sb_len  = 0;
+							memset(sb, 0, 1024);
+							break;
+						case IAC: 
+							/* IAC IAC? That's probably not right. */
+							done = 2;
+							break;
+						default:
+							break;
+					}
+				} else if (sb_mode) {
+					/* Extended Option Mode -> Accept character */
+					if (sb_len < 1023) {
+						/* Append this character to the SB string,
+						 * but only if it doesn't put us over
+						 * our limit; honestly, we shouldn't hit
+						 * the limit, as we're only collecting characters
+						 * for a terminal type or window size, but better safe than
+						 * sorry (and vulernable).
+						 */
+						sb[sb_len] = i;
+						sb_len++;
 					}
 				}
 			}
@@ -379,7 +425,7 @@ int main(int argc, char ** argv) {
 		char * nterm = getenv("TERM");
 		if (nterm)
 			strcpy(term, nterm);
-		
+
 		/* Also get the number of columns */
 		struct winsize w;
 		ioctl(0, TIOCGWINSZ, &w);
@@ -390,7 +436,7 @@ int main(int argc, char ** argv) {
 	for (k = 0; k < strlen(term); ++k) {
 		term[k] = tolower(term[k]);
 	}
-	
+
 	/* We don't want terminals wider than 80 columns */
 	if(terminal_width > 80) terminal_width = 80;
 
@@ -548,39 +594,41 @@ int main(int argc, char ** argv) {
 	/* Clear the screen */
 	printf("\033[H\033[2J\033[?25l");
 
-	/* Display the MOTD */
-	int countdown_clock = 5;
-	for (k = 0; k < countdown_clock; ++k) {
-		newline(3);
-		printf("                             \033[1mNyancat Telnet Server\033[0m");
-		newline(2);
-		printf("                   written and run by \033[1;32mKevin Lange\033[1;34m @kevinlange\033[0m");
-		newline(2);
-		printf("        If things don't look right, try:");
-		newline(1);
-		printf("                TERM=fallback telnet ...");
-		newline(2);
-		printf("        Or on Windows:");
-		newline(1);
-		printf("                telnet -t vtnt ...");
-		newline(2);
-		printf("        Problems? I am also a webserver:");
-		newline(1);
-		printf("                \033[1;34mhttp://miku.acm.uiuc.edu\033[0m");
-		newline(2);
-		printf("        This is a telnet server, remember your escape keys!");
-		newline(1);
-		printf("                \033[1;31m^]quit\033[0m to exit");
-		newline(2);
-		printf("        Starting in %d...                \n", countdown_clock-k);
+	if (show_intro) {
+		/* Display the MOTD */
+		int countdown_clock = 5;
+		for (k = 0; k < countdown_clock; ++k) {
+			newline(3);
+			printf("                             \033[1mNyancat Telnet Server\033[0m");
+			newline(2);
+			printf("                   written and run by \033[1;32mKevin Lange\033[1;34m @kevinlange\033[0m");
+			newline(2);
+			printf("        If things don't look right, try:");
+			newline(1);
+			printf("                TERM=fallback telnet ...");
+			newline(2);
+			printf("        Or on Windows:");
+			newline(1);
+			printf("                telnet -t vtnt ...");
+			newline(2);
+			printf("        Problems? I am also a webserver:");
+			newline(1);
+			printf("                \033[1;34mhttp://miku.acm.uiuc.edu\033[0m");
+			newline(2);
+			printf("        This is a telnet server, remember your escape keys!");
+			newline(1);
+			printf("                \033[1;31m^]quit\033[0m to exit");
+			newline(2);
+			printf("        Starting in %d...                \n", countdown_clock-k);
 
-		fflush(stdout);
-		usleep(400000);
-		printf("\033[H"); /* Reset cursor */
+			fflush(stdout);
+			usleep(400000);
+			printf("\033[H"); /* Reset cursor */
+		}
+
+		/* Clear the screen again */
+		printf("\033[H\033[2J\033[?25l");
 	}
-
-	/* Clear the screen again */
-	printf("\033[H\033[2J\033[?25l");
 
 	/* Store the start time */
 	time_t start, current;
