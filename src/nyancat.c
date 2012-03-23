@@ -237,6 +237,9 @@ void send_command(int cmd, int opt) {
 	}
 }
 
+/*
+ * Print the usage / help text describing options
+ */
 void usage(char * argv[]) {
 	printf(
 			"Terminal Nyancat\n"
@@ -251,7 +254,6 @@ void usage(char * argv[]) {
 
 int main(int argc, char ** argv) {
 
-	/* I have a bad habit of being very C99, so this may not be everything */
 	/* The default terminal is ANSI */
 	char term[1024] = {'a','n','s','i', 0};
 	int terminal_width = 80;
@@ -261,6 +263,7 @@ int main(int argc, char ** argv) {
 	char sb[1024] = {0};
 	char sb_len   = 0;
 
+	/* Whether or not to show the MOTD intro */
 	char show_intro = 0;
 
 	/* Long option names */
@@ -423,8 +426,9 @@ int main(int argc, char ** argv) {
 		/* We are running standalone, retrieve the
 		 * terminal type from the environment. */
 		char * nterm = getenv("TERM");
-		if (nterm)
+		if (nterm) {
 			strcpy(term, nterm);
+		}
 
 		/* Also get the number of columns */
 		struct winsize w;
@@ -438,7 +442,9 @@ int main(int argc, char ** argv) {
 	}
 
 	/* We don't want terminals wider than 80 columns */
-	if(terminal_width > 80) terminal_width = 80;
+	if(terminal_width > 80) {
+		terminal_width = 80;
+	}
 
 	/* Do our terminal detection */
 	if (strstr(term, "xterm")) {
