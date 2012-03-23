@@ -32,4 +32,7 @@ distcheck: $(distdir).tar.gz
 	rm -rf $(distdir)
 	@echo "*** Package $(distdir).tar.gz is ready for distribution."
 
-.PHONY: FORCE all clean check dist distcheck
+install: all
+	install src/nyancat /usr/bin/${package}
+
+.PHONY: FORCE all clean check dist distcheck install
