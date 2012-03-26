@@ -759,8 +759,6 @@ int main(int argc, char ** argv) {
 		++f;
 		if (frame_count != 0 && f == frame_count) {
 			finish();
-		} else {
-			printf("f_c = %d,%d\n", f, frame_count);
 		}
 		++i;
 		if (!frames[i]) {
