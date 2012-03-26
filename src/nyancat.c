@@ -101,6 +101,17 @@ char * output = "  ";
 int telnet = 0;
 
 /*
+ * Whether or not to show the counter
+ */
+int show_counter = 1;
+
+/*
+ * Number of frames to show before quitting
+ * or 0 to repeat forever (default)
+ */
+int frame_count = 0;
+
+/*
  * Environment to use for setjmp/longjmp
  * when breaking out of options handler
  */
@@ -125,18 +136,26 @@ int digits(int val) {
  * These values crop the animation, as we have a full 64x64 stored,
  * but we only want to display 40x24 (double width).
  */
-#define MIN_ROW 20
-#define MAX_ROW 43
-#define MIN_COL 10
-#define MAX_COL 50
+int min_row = 20;
+int max_row = 43;
+int min_col = 10;
+int max_col = 50;
+
+/*
+ * Print escape sequences to return cursor to visible mode
+ * and exit the application.
+ */
+void finish() {
+	printf("\033[?25h\033[0m\033[H\033[2J");
+	exit(0);
+}
 
 /*
  * In the standalone mode, we want to handle an interrupt signal
  * (^C) so that we can restore the cursor and clear the terminal.
  */
 void SIGINT_handler(int sig){
-	printf("\033[?25h\033[0m\033[H\033[2J");
-	exit(0);
+	finish();
 }
 
 /*
@@ -244,11 +263,19 @@ void usage(char * argv[]) {
 	printf(
 			"Terminal Nyancat\n"
 			"\n"
-			"usage: %s [-h] [-t] [-i] \n"
+			"usage: %s [-hitn] [-f \033[3mframes\033[0m]\n"
 			"\n"
-			" -i --intro     \033[3mShow the introduction / about informaiton at startup.\033[0m\n"
-			" -t --telnet    \033[3mTelnet mode.\033[0m\n",
-			" -h --help      \033[3mShow this help message.\033[0m\n",
+			" -i --intro      \033[3mShow the introduction / about informaiton at startup.\033[0m\n"
+			" -t --telnet     \033[3mTelnet mode.\033[0m\n"
+			" -n --no-counter \033[3mDo not display the timer\033[0m\n"
+			" -f --frames     \033[3mDisplay the requested number of frames, then quit\033[0m\n"
+			" -r --min-rows   \033[3mCrop the animation from the top\033[0m\n"
+			" -R --max-rows   \033[3mCrop the animation from the bottom\033[0m\n"
+			" -c --min-cols   \033[3mCrop the animation from the left\033[0m\n"
+			" -C --max-cols   \033[3mCrop the animation from the right\033[0m\n"
+			" -W --width      \033[3mCrop the animation to the given width\033[0m\n"
+			" -H --height     \033[3mCrop the animation to the given height\033[0m\n"
+			" -h --help       \033[3mShow this help message.\033[0m\n",
 			argv[0]);
 }
 
@@ -268,15 +295,23 @@ int main(int argc, char ** argv) {
 
 	/* Long option names */
 	static struct option long_opts[] = {
-		{"help",   no_argument,    0, 'h'},
-		{"telnet", no_argument,    0, 't'},
-		{"intro",  no_argument,    0, 'i'},
+		{"help",       no_argument,       0, 'h'},
+		{"telnet",     no_argument,       0, 't'},
+		{"intro",      no_argument,       0, 'i'},
+		{"no-counter", no_argument,       0, 'n'},
+		{"frames",     required_argument, 0, 'f'},
+		{"min-rows",   required_argument, 0, 'r'},
+		{"max-rows",   required_argument, 0, 'R'},
+		{"min-cols",   required_argument, 0, 'c'},
+		{"max-cols",   required_argument, 0, 'C'},
+		{"width",      required_argument, 0, 'W'},
+		{"height",     required_argument, 0, 'H'},
 		{0,0,0,0}
 	};
 
 	/* Process arguments */
 	int index, c;
-	while ((c = getopt_long(argc, argv, "hit", long_opts, &index)) != -1) {
+	while ((c = getopt_long(argc, argv, "hitnf:r:R:c:C:W:H:", long_opts, &index)) != -1) {
 		if (!c) {
 			if (long_opts[index].flag == 0) {
 				c = long_opts[index].val;
@@ -292,6 +327,32 @@ int main(int argc, char ** argv) {
 			case 'h': /* Show help and exit */
 				usage(argv);
 				exit(0);
+				break;
+			case 'n':
+				show_counter = 0;
+				break;
+			case 'f':
+				frame_count = atoi(optarg);
+				break;
+			case 'r':
+				min_row = atoi(optarg);
+				break;
+			case 'R':
+				max_row = atoi(optarg);
+				break;
+			case 'c':
+				min_col = atoi(optarg);
+				break;
+			case 'C':
+				max_col = atoi(optarg);
+				break;
+			case 'W':
+				min_col = (FRAME_WIDTH - atoi(optarg)) / 2;
+				max_col = (FRAME_WIDTH + atoi(optarg)) / 2;
+				break;
+			case 'H':
+				min_row = (FRAME_HEIGHT - atoi(optarg)) / 2;
+				max_row = (FRAME_HEIGHT + atoi(optarg)) / 2;
 				break;
 			default:
 				break;
@@ -640,14 +701,15 @@ int main(int argc, char ** argv) {
 	time_t start, current;
 	time(&start);
 
-	int playing = 1; /* Animation should continue [left here for modifications] */
-	size_t i = 0;    /* Current frame # */
-	char last = 0;   /* Last color index rendered */
-	size_t y, x;     /* x/y coordinates of what we're drawing */
+	int playing = 1;    /* Animation should continue [left here for modifications] */
+	size_t i = 0;       /* Current frame # */
+	unsigned int f = 0; /* Total frames passed */
+	char last = 0;      /* Last color index rendered */
+	size_t y, x;        /* x/y coordinates of what we're drawing */
 	while (playing) {
 		/* Render the frame */
-		for (y = MIN_ROW; y < MAX_ROW; ++y) {
-			for (x = MIN_COL; x < MAX_COL; ++x) {
+		for (y = min_row; y < max_row; ++y) {
+			for (x = min_col; x < max_col; ++x) {
 				if (always_escape) {
 					/* Text mode (or "Always Send Color Escapse") */
 					printf("%s", colors[frames[i][y][x]]);
@@ -665,28 +727,41 @@ int main(int argc, char ** argv) {
 			/* End of row, send newline */
 			newline(1);
 		}
-		/* Get the current time for the "You have nyaned..." string */
-		time(&current);
-		double diff = difftime(current, start);
-		/* Now count the length of the time difference so we can center */
-		int nLen = digits((int)diff);
-		int width = (terminal_width - 29 - nLen) / 2;
-		/* Spit out some spaces so that we're actually centered */
-		while (width > 0) {
-			printf(" ");
-			width--;
+		if (show_counter) {
+			/* Get the current time for the "You have nyaned..." string */
+			time(&current);
+			double diff = difftime(current, start);
+			/* Now count the length of the time difference so we can center */
+			int nLen = digits((int)diff);
+			int anim_width = terminal_width == 80 ? (max_col - min_col) * 2 : (max_col - min_col);
+			/*
+			 * 29 = the length of the rest of the string;
+			 * XXX: Replace this was actually checking the written bytes from a
+			 * call to sprintf or something
+			 */
+			int width = (anim_width - 29 - nLen) / 2;
+			/* Spit out some spaces so that we're actually centered */
+			while (width > 0) {
+				printf(" ");
+				width--;
+			}
+			/* You have nyaned for [n] seconds!
+			 * The \033[J ensures that the rest of the line has the dark blue
+			 * background, and the \033[1;37m ensures that our text is bright white.
+			 * The \033[0m prevents the Apple ][ from flipping everything, but
+			 * makes the whole nyancat less bright on the vt220
+			 */
+			printf("\033[1;37mYou have nyaned for %0.0f seconds!\033[J\033[0m", diff);
 		}
-		/* You have nyaned for [n] seconds!
-		 * The \033[J ensures that the rest of the line has the dark blue
-		 * background, and the \033[1;37m ensures that our text is bright white.
-		 * The \033[0m prevents the Apple ][ from flipping everything, but
-		 * makes the whole nyancat less bright on the vt220
-		 */
-		printf("\033[1;37mYou have nyaned for %0.0f seconds!\033[J\033[0m", diff);
-		
 		/* Reset the last color so that the escape sequences rewrite */
 		last = 0;
 		/* Update frame crount */
+		++f;
+		if (frame_count != 0 && f == frame_count) {
+			finish();
+		} else {
+			printf("f_c = %d,%d\n", f, frame_count);
+		}
 		++i;
 		if (!frames[i]) {
 			/* Loop animation */
