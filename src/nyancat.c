@@ -9,7 +9,7 @@
  *                          http://github.com/Peetz0r/nyancat
  *                          http://peter.haas-en-berg.nl
  *
- * Build tools unifed by:   Aaron Peschel
+ * Build tools unified by:  Aaron Peschel
  *                          https://github.com/apeschel
  *
  * For a complete listing of contributers, please see the git commit history.
@@ -90,7 +90,7 @@
 char * colors[256] = {NULL};
 
 /*
- * For most modes, we ouput spaces, but for some
+ * For most modes, we output spaces, but for some
  * we will use block characters (or even nothing)
  */
 char * output = "  ";
@@ -280,7 +280,7 @@ void usage(char * argv[]) {
 			"\n"
 			"usage: %s [-hitn] [-f \033[3mframes\033[0m]\n"
 			"\n"
-			" -i --intro      \033[3mShow the introduction / about informaiton at startup.\033[0m\n"
+			" -i --intro      \033[3mShow the introduction / about information at startup.\033[0m\n"
 			" -t --telnet     \033[3mTelnet mode.\033[0m\n"
 			" -n --no-counter \033[3mDo not display the timer\033[0m\n"
 			" -s --no-title   \033[3mDo not set the titlebar text\033[0m\n"
@@ -465,7 +465,7 @@ int main(int argc, char ** argv) {
 							break;
 						case DO:
 						case DONT:
-							/* Do / Don't Negotation */
+							/* Do / Don't Negotiation */
 							opt = getchar();
 							if (!telnet_options[opt]) {
 								/* We default to DONT */
@@ -500,7 +500,7 @@ int main(int argc, char ** argv) {
 						 * our limit; honestly, we shouldn't hit
 						 * the limit, as we're only collecting characters
 						 * for a terminal type or window size, but better safe than
-						 * sorry (and vulernable).
+						 * sorry (and vulnerable).
 						 */
 						sb[sb_len] = i;
 						sb_len++;
@@ -754,7 +754,7 @@ int main(int argc, char ** argv) {
 		for (y = min_row; y < max_row; ++y) {
 			for (x = min_col; x < max_col; ++x) {
 				if (always_escape) {
-					/* Text mode (or "Always Send Color Escapse") */
+					/* Text mode (or "Always Send Color Escapes") */
 					printf("%s", colors[frames[i][y][x]]);
 				} else {
 					if (frames[i][y][x] != last && colors[frames[i][y][x]]) {
@@ -798,7 +798,7 @@ int main(int argc, char ** argv) {
 		}
 		/* Reset the last color so that the escape sequences rewrite */
 		last = 0;
-		/* Update frame crount */
+		/* Update frame count */
 		++f;
 		if (frame_count != 0 && f == frame_count) {
 			finish();
