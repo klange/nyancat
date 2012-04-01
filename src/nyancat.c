@@ -283,6 +283,8 @@ void usage(char * argv[]) {
 			" -i --intro      \033[3mShow the introduction / about informaiton at startup.\033[0m\n"
 			" -t --telnet     \033[3mTelnet mode.\033[0m\n"
 			" -n --no-counter \033[3mDo not display the timer\033[0m\n"
+			" -s --no-title   \033[3mDo not set the titlebar text\033[0m\n"
+			" -e --no-clear   \033[3mDo not clear the display between frames\033[0m\n"
 			" -f --frames     \033[3mDisplay the requested number of frames, then quit\033[0m\n"
 			" -r --min-rows   \033[3mCrop the animation from the top\033[0m\n"
 			" -R --max-rows   \033[3mCrop the animation from the bottom\033[0m\n"
@@ -314,6 +316,8 @@ int main(int argc, char ** argv) {
 		{"telnet",     no_argument,       0, 't'},
 		{"intro",      no_argument,       0, 'i'},
 		{"no-counter", no_argument,       0, 'n'},
+		{"no-title",   no_argument,       0, 's'},
+		{"no-clear",   no_argument,       0, 'e'},
 		{"frames",     required_argument, 0, 'f'},
 		{"min-rows",   required_argument, 0, 'r'},
 		{"max-rows",   required_argument, 0, 'R'},
