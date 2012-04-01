@@ -112,6 +112,17 @@ int show_counter = 1;
 int frame_count = 0;
 
 /*
+ * Clear the screen between frames (as opposed to reseting
+ * the cursor position)
+ */
+int clear_screen = 1;
+
+/*
+ * Force-set the terminal title.
+ */
+int set_title = 1;
+
+/*
  * Environment to use for setjmp/longjmp
  * when breaking out of options handler
  */
@@ -146,7 +157,11 @@ int max_col = 50;
  * and exit the application.
  */
 void finish() {
-	printf("\033[?25h\033[0m\033[H\033[2J");
+	if (clear_screen) {
+		printf("\033[?25h\033[0m\033[H\033[2J");
+	} else {
+		printf("\033[0m\n");
+	}
 	exit(0);
 }
 
@@ -311,13 +326,19 @@ int main(int argc, char ** argv) {
 
 	/* Process arguments */
 	int index, c;
-	while ((c = getopt_long(argc, argv, "hitnf:r:R:c:C:W:H:", long_opts, &index)) != -1) {
+	while ((c = getopt_long(argc, argv, "eshitnf:r:R:c:C:W:H:", long_opts, &index)) != -1) {
 		if (!c) {
 			if (long_opts[index].flag == 0) {
 				c = long_opts[index].val;
 			}
 		}
 		switch (c) {
+			case 'e':
+				clear_screen = 0;
+				break;
+			case 's':
+				set_title = 0;
+				break;
 			case 'i': /* Show introduction */
 				show_intro = 1;
 				break;
@@ -654,12 +675,18 @@ int main(int argc, char ** argv) {
 	}
 
 	/* Attempt to set terminal title */
-	printf("\033kNyanyanyanyanyanyanya...\033\134");
-	printf("\033]1;Nyanyanyanyanyanyanya...\007");
-	printf("\033]2;Nyanyanyanyanyanyanya...\007");
+	if (set_title) {
+		printf("\033kNyanyanyanyanyanyanya...\033\134");
+		printf("\033]1;Nyanyanyanyanyanyanya...\007");
+		printf("\033]2;Nyanyanyanyanyanyanya...\007");
+	}
 
-	/* Clear the screen */
-	printf("\033[H\033[2J\033[?25l");
+	if (clear_screen) {
+		/* Clear the screen */
+		printf("\033[H\033[2J\033[?25l");
+	} else {
+		printf("\033[s");
+	}
 
 	if (show_intro) {
 		/* Display the MOTD */
@@ -690,11 +717,17 @@ int main(int argc, char ** argv) {
 
 			fflush(stdout);
 			usleep(400000);
-			printf("\033[H"); /* Reset cursor */
+			if (clear_screen) {
+				printf("\033[H"); /* Reset cursor */
+			} else {
+				printf("\033[u");
+			}
 		}
 
-		/* Clear the screen again */
-		printf("\033[H\033[2J\033[?25l");
+		if (clear_screen) {
+			/* Clear the screen again */
+			printf("\033[H\033[2J\033[?25l");
+		}
 	}
 
 	/* Store the start time */
@@ -707,6 +740,12 @@ int main(int argc, char ** argv) {
 	char last = 0;      /* Last color index rendered */
 	size_t y, x;        /* x/y coordinates of what we're drawing */
 	while (playing) {
+		/* Reset cursor */
+		if (clear_screen) {
+			printf("\033[H");
+		} else {
+			printf("\033[u");
+		}
 		/* Render the frame */
 		for (y = min_row; y < max_row; ++y) {
 			for (x = min_col; x < max_col; ++x) {
@@ -765,8 +804,6 @@ int main(int argc, char ** argv) {
 			/* Loop animation */
 			i = 0;
 		}
-		/* Reset cursor */
-		printf("\033[H");
 		/* Wait */
 		usleep(90000);
 	}
