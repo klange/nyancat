@@ -3,7 +3,7 @@ OBJECTS = nyancat.o
 all: nyancat
 
 nyancat: $(OBJECTS)
-	$(CC) $(LFLAGS) $(OBJECTS) -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o $@
 
 clean:
 	-rm -f $(OBJECTS) nyancat
