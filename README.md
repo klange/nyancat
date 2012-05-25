@@ -18,7 +18,11 @@ To use the telnet server, you need to add a configuration that runs:
 
     nyancat -t
 
-... to either an `inetd` or `xinetd` server. I am using `openbsd-inetd`, which you must give *both* arguments (`nyancat` and `-t`) to, which I found odd.
+We recommend `openbsd-inetd`, but `xinetd` will work as well, and you should be able to use any other compatible `inetd` flavor.
+
+## Debian
+
+If you are running Debian Sid ("unstable" as of writing this), you can install the `nyancat` package and the `nyancat-server` pseudo-package, the latter of which will install `openbsd-inetd` (unless you have another `inetd` installed) and set up `/etc/initd.conf` properly (note that it probably won't work if you have `xinetd`, so you're on your own in that case). I am not the maintainer of this package, please direct any questions or bugs to [jmccrohan](https://github.com/jmccrohan).
 
 ## Licenses, References, etc.
 
