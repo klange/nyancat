@@ -4,6 +4,16 @@ Nyancat rendered in your terminal.
 
 [![Nyancats](http://i.imgur.com/snCOQl.png)](http://i.imgur.com/snCOQ.png)
 
+## Distributions
+
+Nyancat is available in the following distributions:
+
+- [Arch](http://aur.archlinux.org/packages.php?ID=55279)
+- [Debian](http://packages.qa.debian.org/n/nyancat.html)
+- [Gentoo](http://packages.gentoo.org/package/games-misc/nyancat)
+- [Mandriva](http://sophie.zarb.org/rpms/928724d4aea0efdbdeda1c80cb59a7d3)
+- [Ubuntu](https://launchpad.net/ubuntu/+source/nyancat)
+
 ## Setup
 
 First build the C application:
@@ -20,9 +30,15 @@ To use the telnet server, you need to add a configuration that runs:
 
 We recommend `openbsd-inetd`, but `xinetd` will work as well, and you should be able to use any other compatible `inetd` flavor.
 
-## Debian
+## Distribution Specific Information
 
-If you are running Debian Sid ("unstable" as of writing this), you can install the `nyancat` package and the `nyancat-server` pseudo-package, the latter of which will install `openbsd-inetd` (unless you have another `inetd` installed) and set up `/etc/initd.conf` properly (note that it probably won't work if you have `xinetd`, so you're on your own in that case). I am not the maintainer of this package, please direct any questions or bugs to [jmccrohan](https://github.com/jmccrohan).
+#### Debian/Ubuntu
+
+Debian and Ubuntu provide the nyancat binary through the `nyancat` package.
+A `nyancat-server` package is provided to automatically setup and enable a
+nyancat telnet server upon installation. I am not the maintainer of these
+package, please direct any questions or bugs to the relevant distribution's bug
+tracking system.
 
 ## Licenses, References, etc.
 
