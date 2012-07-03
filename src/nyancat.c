@@ -304,8 +304,8 @@ int main(int argc, char ** argv) {
 	int k, ttype;
 	uint32_t option = 0, done = 0, sb_mode = 0, do_echo = 0;
 	/* Various pieces for the telnet communication */
-	char sb[1024] = {0};
-	char sb_len   = 0;
+	char  sb[1024] = {0};
+	short sb_len   = 0;
 
 	/* Whether or not to show the MOTD intro */
 	char show_intro = 0;
