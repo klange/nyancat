@@ -483,7 +483,7 @@ int main(int argc, char ** argv) {
 							/* Begin Extended Option Mode */
 							sb_mode = 1;
 							sb_len  = 0;
-							memset(sb, 0, 1024);
+							memset(sb, 0, sizeof(sb));
 							break;
 						case IAC: 
 							/* IAC IAC? That's probably not right. */
@@ -494,7 +494,7 @@ int main(int argc, char ** argv) {
 					}
 				} else if (sb_mode) {
 					/* Extended Option Mode -> Accept character */
-					if (sb_len < 1023) {
+					if (sb_len < sizeof(sb) - 1) {
 						/* Append this character to the SB string,
 						 * but only if it doesn't put us over
 						 * our limit; honestly, we shouldn't hit
