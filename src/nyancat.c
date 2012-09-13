@@ -549,6 +549,8 @@ int main(int argc, char ** argv) {
 		ttype = 3; /* Accepts LINUX mode */
 	} else if (strstr(term, "vt100") && terminal_width == 40) {
 		ttype = 7; /* No color support, only 40 columns */
+	} else if (!strncmp(term, "st", 2)) {
+		ttype = 1; /* suckless simple terminal is xterm-256color-compatible */
 	} else {
 		ttype = 2; /* Everything else */
 	}
