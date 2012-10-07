@@ -71,14 +71,14 @@
 /*
  * telnet.h contains some #defines for the various
  * commands, escape characters, and modes for telnet.
- * (it surprises some people that telnet is, really,
+ * (it astonishes some people that telnet is, really,
  *  a protocol, and not just raw text transmission)
  */
 #include "telnet.h"
 
 /*
  * The animation frames are stored separately in
- * this header so they don't clutter the core source
+ * this header so they don't disarray the core source
  */
 #include "animation.h"
 
@@ -139,7 +139,8 @@ jmp_buf environment;
 int digits(int val) {
 	int d = 1, c;
 	if (val >= 0) for (c = 10; c <= val; c *= 10) d++;
-	else for (c = -10 ; c >= val; c *= 10) d++;
+	else
+		for (c = -10 ; c >= val; c *= 10) d++;
 	return (c < 0) ? ++d : d;
 }
 
