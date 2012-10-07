@@ -37,7 +37,7 @@ able to use any other compatible `inetd` flavor.
 
 Debian and Ubuntu provide the nyancat binary through the `nyancat` package. A
 `nyancat-server` package is provided to automatically setup and enable a nyancat
-telnet server upon installation. I am not the maintainer of these packages,
+telnet server upon installation. I am not the maintainer of these packages;
 please direct any questions or bugs to the relevant distribution's bug tracking
 system.
 
