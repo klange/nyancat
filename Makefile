@@ -34,5 +34,6 @@ distcheck: $(distdir).tar.gz
 
 install: all
 	install src/nyancat /usr/bin/${package}
+	gzip -9 -c < nyancat.1 > /usr/share/man/man1/nyancat.1.gz
 
 .PHONY: FORCE all clean check dist distcheck install
