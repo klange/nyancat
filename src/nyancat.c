@@ -587,18 +587,18 @@ int main(int argc, char ** argv) {
 	switch (ttype) {
 		case 1:
 			colors[',']  = "\033[48;5;17m";  /* Blue background */
-			colors['.']  = "\033[48;5;15m";  /* White stars */
-			colors['\''] = "\033[48;5;0m";   /* Black border */
+			colors['.']  = "\033[48;5;255m"; /* White stars */
+			colors['\''] = "\033[48;5;232m"; /* Black border */
 			colors['@']  = "\033[48;5;230m"; /* Tan poptart */
 			colors['$']  = "\033[48;5;175m"; /* Pink poptart */
 			colors['-']  = "\033[48;5;162m"; /* Red poptart */
-			colors['>']  = "\033[48;5;9m";   /* Red rainbow */
-			colors['&']  = "\033[48;5;202m"; /* Orange rainbow */
-			colors['+']  = "\033[48;5;11m";  /* Yellow Rainbow */
-			colors['#']  = "\033[48;5;10m";  /* Green rainbow */
+			colors['>']  = "\033[48;5;196m"; /* Red rainbow */
+			colors['&']  = "\033[48;5;214m"; /* Orange rainbow */
+			colors['+']  = "\033[48;5;226m"; /* Yellow Rainbow */
+			colors['#']  = "\033[48;5;118m"; /* Green rainbow */
 			colors['=']  = "\033[48;5;33m";  /* Light blue rainbow */
 			colors[';']  = "\033[48;5;19m";  /* Dark blue rainbow */
-			colors['*']  = "\033[48;5;8m";   /* Gray cat face */
+			colors['*']  = "\033[48;5;240m"; /* Gray cat face */
 			colors['%']  = "\033[48;5;175m"; /* Pink cheeks */
 			break;
 		case 2:
