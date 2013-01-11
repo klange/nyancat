@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Kevin Lange.  All rights reserved.
+ * Copyright (c) 2011-2013 Kevin Lange.  All rights reserved.
  *
  * Developed by:            Kevin Lange
  *                          http://github.com/klange/nyancat
