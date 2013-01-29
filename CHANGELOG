@@ -1,0 +1,10 @@
+1.1 (tagged on 2013-01-28)
+    * Support the Suckless terminal
+    * Support building for とあるOS
+    * Changed color palette for 256 color modes (fixes alternate color
+      schemes looking wonky)
+    * Install the man page as part of package building
+    * Fix a potential bug processing extended options
+
+1.0
+    * Initial public release for packaging
