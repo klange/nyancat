@@ -444,7 +444,6 @@ int main(int argc, char ** argv) {
 								/* This was a response to the TTYPE command, meaning
 								 * that this should be a terminal type */
 								alarm(0);
-								alarm(2);
 								strcpy(term, &sb[2]);
 								done++;
 							}
@@ -452,7 +451,6 @@ int main(int argc, char ** argv) {
 								/* This was a response to the NAWS command, meaning
 								 * that this should be a window size */
 								alarm(0);
-								alarm(2);
 								terminal_width = sb[2];
 								done++;
 							}
