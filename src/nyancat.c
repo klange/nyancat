@@ -60,25 +60,14 @@
 #include <setjmp.h>
 #include <getopt.h>
 
-#ifdef __toaru__
-
-#include <syscall.h>
-
-DEFN_SYSCALL2(nanosleep,  46, unsigned long, unsigned long);
-
-int usleep(useconds_t time) {
-	syscall_nanosleep(0, time / 10000);
-}
-
-#else
 #include <sys/ioctl.h>
-#endif
 
 #ifndef TIOCGWINSZ
 #include <termios.h>
+#endif
+
 #ifdef ECHO
 #undef ECHO
-#endif
 #endif
 
 /*
@@ -531,20 +520,9 @@ int main(int argc, char ** argv) {
 		}
 
 		/* Also get the number of columns */
-#ifdef __toaru__
-		if (strstr(term, "toaru")) {
-			printf("\033[1003z");
-			fflush(stdout);
-			int height;
-			scanf("%d,%d", &terminal_width, &height);
-		} else {
-			terminal_width = 80; /* better safe than sorry */
-		}
-#else
 		struct winsize w;
 		ioctl(0, TIOCGWINSZ, &w);
 		terminal_width = w.ws_col;
-#endif
 	}
 
 	/* Convert the entire terminal string to lower case */
