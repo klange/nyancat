@@ -82,7 +82,7 @@
  * The animation frames are stored separately in
  * this header so they don't clutter the core source
  */
-#include "animation.h"
+#include "animation.c"
 
 /*
  * Color palette to use for final output
