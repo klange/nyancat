@@ -1,3 +1,8 @@
+1.2 (marked on 2013-05-20)
+    * Remove toaruos legacy support
+    * May possibly have fixed misidentification on GitHub
+    * Other minor fixes
+
 1.1 (tagged on 2013-01-28)
     * Support the Suckless terminal
     * Support building for とあるOS
