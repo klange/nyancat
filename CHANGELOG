@@ -1,3 +1,6 @@
+1.2.1 (marked on 2013-07-03)
+    * Fixes for manpage
+
 1.2 (marked on 2013-05-20)
     * Remove toaruos legacy support
     * May possibly have fixed misidentification on GitHub
