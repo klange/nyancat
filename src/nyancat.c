@@ -3,8 +3,8 @@
  *
  * Developed by:            Kevin Lange
  *                          http://github.com/klange/nyancat
- *                          http://miku.acm.uiuc.edu
- * 
+ *                          http://nyancat.dakko.us
+ *
  * 40-column support by:    Peter Hazenberg
  *                          http://github.com/Peetz0r/nyancat
  *                          http://peter.haas-en-berg.nl
@@ -22,7 +22,7 @@
  *
  * For more information, please see:
  *
- *     http://miku.acm.uiuc.edu
+ *     http://nyancat.dakko.us
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -716,9 +716,9 @@ int main(int argc, char ** argv) {
 			newline(1);
 			printf("                telnet -t vtnt ...");
 			newline(2);
-			printf("        Problems? I am also a webserver:");
+			printf("        Problems? Check the website:");
 			newline(1);
-			printf("                \033[1;34mhttp://miku.acm.uiuc.edu\033[0m");
+			printf("                \033[1;34mhttp://nyancat.dakko.us\033[0m");
 			newline(2);
 			printf("        This is a telnet server, remember your escape keys!");
 			newline(1);
