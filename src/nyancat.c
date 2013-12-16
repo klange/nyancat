@@ -186,6 +186,14 @@ void SIGALRM_handler(int sig) {
 }
 
 /*
+ * Handle the loss of stdout, as would be the case when
+ * in telnet mode and the client disconnects
+ */
+void SIGPIPE_handler(int sig) {
+	finish();
+}
+
+/*
  * Telnet requires us to send a specific sequence
  * for a line break (\r\000\n), so let's make it happy.
  */
@@ -563,6 +571,9 @@ int main(int argc, char ** argv) {
 	int always_escape = 0; /* Used for text mode */
 	/* Accept ^C -> restore cursor */
 	signal(SIGINT, SIGINT_handler);
+
+	/* Handle loss of stdout */
+	signal(SIGPIPE, SIGPIPE_handler);
 	switch (ttype) {
 		case 1:
 			colors[',']  = "\033[48;5;17m";  /* Blue background */
