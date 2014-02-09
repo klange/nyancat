@@ -319,6 +319,7 @@ int main(int argc, char ** argv) {
 
 	/* Whether or not to show the MOTD intro */
 	char show_intro = 0;
+	char skip_intro = 0;
 
 	/* Long option names */
 	static struct option long_opts[] = {
@@ -340,7 +341,7 @@ int main(int argc, char ** argv) {
 
 	/* Process arguments */
 	int index, c;
-	while ((c = getopt_long(argc, argv, "eshitnf:r:R:c:C:W:H:", long_opts, &index)) != -1) {
+	while ((c = getopt_long(argc, argv, "eshiItnf:r:R:c:C:W:H:", long_opts, &index)) != -1) {
 		if (!c) {
 			if (long_opts[index].flag == 0) {
 				c = long_opts[index].val;
@@ -355,6 +356,9 @@ int main(int argc, char ** argv) {
 				break;
 			case 'i': /* Show introduction */
 				show_intro = 1;
+				break;
+			case 'I':
+				skip_intro = 1;
 				break;
 			case 't': /* Expect telnet bits */
 				telnet = 1;
@@ -397,8 +401,8 @@ int main(int argc, char ** argv) {
 	if (telnet) {
 		/* Telnet mode */
 
-		/* Intro is implied by telnet mode, so override whatever was asked for. */
-		show_intro = 1;
+		/* show_intro is implied unless skip_intro was set */
+		show_intro = (skip_intro == 0) ? 1 : 0;
 
 		/* Set the default options */
 		set_options();
