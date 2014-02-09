@@ -326,6 +326,7 @@ int main(int argc, char ** argv) {
 		{"help",       no_argument,       0, 'h'},
 		{"telnet",     no_argument,       0, 't'},
 		{"intro",      no_argument,       0, 'i'},
+		{"skip-intro", no_argument,       0, 'I'},
 		{"no-counter", no_argument,       0, 'n'},
 		{"no-title",   no_argument,       0, 's'},
 		{"no-clear",   no_argument,       0, 'e'},
