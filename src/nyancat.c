@@ -149,10 +149,22 @@ int digits(int val) {
  * These values crop the animation, as we have a full 64x64 stored,
  * but we only want to display 40x24 (double width).
  */
-int min_row = 20;
-int max_row = 43;
-int min_col = 10;
-int max_col = 50;
+int min_row = -1;
+int max_row = -1;
+int min_col = -1;
+int max_col = -1;
+
+/*
+ * Actual width/height of terminal.
+ */
+int terminal_width = 80;
+int terminal_height = 24;
+
+/*
+ * Flags to keep track of whether width/height were automatically set.
+ */
+char using_automatic_width = 0;
+char using_automatic_height = 0;
 
 /*
  * Print escape sequences to return cursor to visible mode
@@ -191,6 +203,23 @@ void SIGALRM_handler(int sig) {
  */
 void SIGPIPE_handler(int sig) {
 	finish();
+}
+
+void SIGWINCH_handler(int sig) {
+	struct winsize w;
+	ioctl(0, TIOCGWINSZ, &w);
+	terminal_width = w.ws_col;
+	terminal_height = w.ws_row;
+
+	if (using_automatic_width) {
+		min_col = (FRAME_WIDTH - terminal_width/2) / 2;
+		max_col = (FRAME_WIDTH + terminal_width/2) / 2;
+	}
+
+	if (using_automatic_height) {
+		min_row = (FRAME_HEIGHT - (terminal_height-1)) / 2;
+		max_row = (FRAME_HEIGHT + (terminal_height-1)) / 2;
+	}
 }
 
 /*
@@ -310,7 +339,6 @@ int main(int argc, char ** argv) {
 
 	/* The default terminal is ANSI */
 	char term[1024] = {'a','n','s','i', 0};
-	int terminal_width = 80;
 	int k, ttype;
 	uint32_t option = 0, done = 0, sb_mode = 0, do_echo = 0;
 	/* Various pieces for the telnet communication */
@@ -536,16 +564,12 @@ int main(int argc, char ** argv) {
 		struct winsize w;
 		ioctl(0, TIOCGWINSZ, &w);
 		terminal_width = w.ws_col;
+		terminal_height = w.ws_row;
 	}
 
 	/* Convert the entire terminal string to lower case */
 	for (k = 0; k < strlen(term); ++k) {
 		term[k] = tolower(term[k]);
-	}
-
-	/* We don't want terminals wider than 80 columns */
-	if(terminal_width > 80) {
-		terminal_width = 80;
 	}
 
 	/* Do our terminal detection */
@@ -574,11 +598,16 @@ int main(int argc, char ** argv) {
 	}
 
 	int always_escape = 0; /* Used for text mode */
+
 	/* Accept ^C -> restore cursor */
 	signal(SIGINT, SIGINT_handler);
 
 	/* Handle loss of stdout */
 	signal(SIGPIPE, SIGPIPE_handler);
+
+	/* Handle window changes */
+	signal(SIGWINCH, SIGWINCH_handler);
+
 	switch (ttype) {
 		case 1:
 			colors[',']  = "\033[48;5;17m";  /* Blue background */
@@ -701,6 +730,18 @@ int main(int argc, char ** argv) {
 			break;
 	}
 
+	if (min_col == max_col) {
+		min_col = (FRAME_WIDTH - terminal_width/2) / 2;
+		max_col = (FRAME_WIDTH + terminal_width/2) / 2;
+		using_automatic_width = 1;
+	}
+
+	if (min_row == max_row) {
+		min_row = (FRAME_HEIGHT - (terminal_height-1)) / 2;
+		max_row = (FRAME_HEIGHT + (terminal_height-1)) / 2;
+		using_automatic_height = 1;
+	}
+
 	/* Attempt to set terminal title */
 	if (set_title) {
 		printf("\033kNyanyanyanyanyanyanya...\033\134");
@@ -765,7 +806,7 @@ int main(int argc, char ** argv) {
 	size_t i = 0;       /* Current frame # */
 	unsigned int f = 0; /* Total frames passed */
 	char last = 0;      /* Last color index rendered */
-	size_t y, x;        /* x/y coordinates of what we're drawing */
+	int y, x;        /* x/y coordinates of what we're drawing */
 	while (playing) {
 		/* Reset cursor */
 		if (clear_screen) {
@@ -776,14 +817,37 @@ int main(int argc, char ** argv) {
 		/* Render the frame */
 		for (y = min_row; y < max_row; ++y) {
 			for (x = min_col; x < max_col; ++x) {
+				char color;
+				if (y > 23 && y < 43 && x < 0) {
+					/*
+					 * Generate the rainbow tail.
+					 *
+					 * This is done with a pretty simplistic square wave.
+					 */
+					int mod_x = ((-x+2) % 16) / 8;
+					if ((i / 2) % 2) {
+						mod_x = 1 - mod_x;
+					}
+					/*
+					 * Our rainbow, with some padding.
+					 */
+					char *rainbow = ",,>>&&&+++###==;;;,,";
+					color = rainbow[mod_x + y-23];
+				} else if (x < 0 || y < 0 || y >= FRAME_HEIGHT || x >= FRAME_WIDTH) {
+					/* Fill all other areas with background */
+					color = ',';
+				} else {
+					/* Otherwise, get the color from the animation frame. */
+					color = frames[i][y][x];
+				}
 				if (always_escape) {
 					/* Text mode (or "Always Send Color Escapes") */
-					printf("%s", colors[frames[i][y][x]]);
+					printf("%s", colors[color]);
 				} else {
-					if (frames[i][y][x] != last && colors[frames[i][y][x]]) {
+					if (color != last && colors[color]) {
 						/* Normal Mode, send escape (because the color changed) */
-						last = frames[i][y][x];
-						printf("%s%s", colors[frames[i][y][x]], output);
+						last = color;
+						printf("%s%s", colors[color], output);
 					} else {
 						/* Same color, just send the output characters */
 						printf("%s", output);
@@ -799,13 +863,12 @@ int main(int argc, char ** argv) {
 			double diff = difftime(current, start);
 			/* Now count the length of the time difference so we can center */
 			int nLen = digits((int)diff);
-			int anim_width = terminal_width == 80 ? (max_col - min_col) * 2 : (max_col - min_col);
 			/*
 			 * 29 = the length of the rest of the string;
 			 * XXX: Replace this was actually checking the written bytes from a
 			 * call to sprintf or something
 			 */
-			int width = (anim_width - 29 - nLen) / 2;
+			int width = (terminal_width - 29 - nLen) / 2;
 			/* Spit out some spaces so that we're actually centered */
 			while (width > 0) {
 				printf(" ");

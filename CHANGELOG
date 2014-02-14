@@ -1,3 +1,9 @@
+1.4
+    * Added better terminal size autodetection
+    * Fixed rendering when requested size was larger than
+      available frame sizes
+    * Made some corrections to the animation frames
+
 1.3
     * Added option to skip intro in telnet mode
 

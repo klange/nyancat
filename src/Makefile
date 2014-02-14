@@ -1,5 +1,7 @@
 OBJECTS = nyancat.o
 
+CFLAGS=-g
+
 all: nyancat
 
 nyancat: $(OBJECTS)
