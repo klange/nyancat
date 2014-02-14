@@ -1,3 +1,6 @@
+1.4.1
+    * Fix telnet size negotiation
+
 1.4
     * Added better terminal size autodetection
     * Fixed rendering when requested size was larger than

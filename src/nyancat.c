@@ -342,7 +342,7 @@ int main(int argc, char ** argv) {
 	int k, ttype;
 	uint32_t option = 0, done = 0, sb_mode = 0, do_echo = 0;
 	/* Various pieces for the telnet communication */
-	char  sb[1024] = {0};
+	unsigned char  sb[1024] = {0};
 	short sb_len   = 0;
 
 	/* Whether or not to show the MOTD intro */
@@ -481,7 +481,8 @@ int main(int argc, char ** argv) {
 								/* This was a response to the NAWS command, meaning
 								 * that this should be a window size */
 								alarm(2);
-								terminal_width = sb[2];
+								terminal_width = (sb[1] << 8) | sb[2];
+								terminal_height = (sb[3] << 8) | sb[4];
 								done++;
 							}
 							break;
@@ -606,7 +607,9 @@ int main(int argc, char ** argv) {
 	signal(SIGPIPE, SIGPIPE_handler);
 
 	/* Handle window changes */
-	signal(SIGWINCH, SIGWINCH_handler);
+	if (!telnet) {
+		signal(SIGWINCH, SIGWINCH_handler);
+	}
 
 	switch (ttype) {
 		case 1:
