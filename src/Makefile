@@ -1,6 +1,9 @@
 OBJECTS = nyancat.o
 
-CFLAGS=-g
+CC	 ?=
+CFLAGS	 ?= -g
+CPPFLAGS ?=
+LDFLAGS  ?=
 
 all: nyancat
 
