@@ -28,8 +28,8 @@ To use the telnet server, you need to add a configuration that runs:
 
     nyancat -t
 
-We recommend `openbsd-inetd`, but `xinetd` will work as well, and you should be
-able to use any other compatible `inetd` flavor.
+We recommend `openbsd-inetd`, but both `xinetd` and `systemd` work as well. You
+should be able to use any other compatible `inetd` flavor too.
 
 ## Distribution Specific Information
 
