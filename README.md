@@ -2,7 +2,7 @@
 
 Nyancat rendered in your terminal.
 
-[![Nyancats](http://i.imgur.com/snCOQl.png)](http://i.imgur.com/snCOQ.png)
+[![Nyancats](http://nyancat.dakko.us/nyancat.png)](http://nyancat.dakko.us/nyancat.png)
 
 ## Distributions
 
