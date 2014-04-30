@@ -1,5 +1,5 @@
 package = nyancat
-version = 1.4.2
+version = 1.4.3
 tarname = $(package)
 distdir = $(tarname)-$(version)
 
