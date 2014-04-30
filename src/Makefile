@@ -1,7 +1,7 @@
 OBJECTS = nyancat.o
 
-CC	 ?=
-CFLAGS	 ?= -g
+CC	?=
+CFLAGS	 ?= -g -Wall -Wextra -std=c99
 CPPFLAGS ?=
 LDFLAGS  ?=
 

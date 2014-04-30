@@ -49,6 +49,7 @@
  * WITH THE SOFTWARE.
  */
 
+#define _XOPEN_SOURCE 500
 #include <ctype.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -111,7 +112,7 @@ int show_counter = 1;
  * Number of frames to show before quitting
  * or 0 to repeat forever (default)
  */
-int frame_count = 0;
+unsigned int frame_count = 0;
 
 /*
  * Clear the screen between frames (as opposed to reseting
@@ -184,6 +185,7 @@ void finish() {
  * (^C) so that we can restore the cursor and clear the terminal.
  */
 void SIGINT_handler(int sig){
+	(void)sig;
 	finish();
 }
 
@@ -192,6 +194,7 @@ void SIGINT_handler(int sig){
  * handling if we didn't receive a terminal
  */
 void SIGALRM_handler(int sig) {
+	(void)sig;
 	alarm(0);
 	longjmp(environment, 1);
 	/* Unreachable */
@@ -202,10 +205,12 @@ void SIGALRM_handler(int sig) {
  * in telnet mode and the client disconnects
  */
 void SIGPIPE_handler(int sig) {
+	(void)sig;
 	finish();
 }
 
 void SIGWINCH_handler(int sig) {
+	(void)sig;
 	struct winsize w;
 	ioctl(0, TIOCGWINSZ, &w);
 	terminal_width = w.ws_col;
@@ -339,11 +344,12 @@ int main(int argc, char ** argv) {
 
 	/* The default terminal is ANSI */
 	char term[1024] = {'a','n','s','i', 0};
-	int k, ttype;
-	uint32_t option = 0, done = 0, sb_mode = 0, do_echo = 0;
+	unsigned int k;
+	int ttype;
+	uint32_t option = 0, done = 0, sb_mode = 0;
 	/* Various pieces for the telnet communication */
-	unsigned char  sb[1024] = {0};
-	short sb_len   = 0;
+	char  sb[1024] = {0};
+	unsigned short sb_len   = 0;
 
 	/* Whether or not to show the MOTD intro */
 	char show_intro = 0;
@@ -516,11 +522,6 @@ int main(int argc, char ** argv) {
 								telnet_options[opt] = DONT;
 							}
 							send_command(telnet_options[opt], opt);
-							if (opt == ECHO) {
-								/* We don't really need this, as we don't accept input, but,
-								 * in case we do in the future, set our echo mode */
-								do_echo = (i == DO);
-							}
 							fflush(stdout);
 							break;
 						case SB:
@@ -761,7 +762,7 @@ int main(int argc, char ** argv) {
 
 	if (show_intro) {
 		/* Display the MOTD */
-		int countdown_clock = 5;
+		unsigned int countdown_clock = 5;
 		for (k = 0; k < countdown_clock; ++k) {
 			newline(3);
 			printf("                             \033[1mNyancat Telnet Server\033[0m");
@@ -845,12 +846,12 @@ int main(int argc, char ** argv) {
 				}
 				if (always_escape) {
 					/* Text mode (or "Always Send Color Escapes") */
-					printf("%s", colors[color]);
+					printf("%s", colors[(int)color]);
 				} else {
-					if (color != last && colors[color]) {
+					if (color != last && colors[(int)color]) {
 						/* Normal Mode, send escape (because the color changed) */
 						last = color;
-						printf("%s%s", colors[color], output);
+						printf("%s%s", colors[(int)color], output);
 					} else {
 						/* Same color, just send the output characters */
 						printf("%s", output);
