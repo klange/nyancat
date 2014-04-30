@@ -90,13 +90,13 @@
  * Specifically, this should be either control sequences
  * or raw characters (ie, for vt220 mode)
  */
-char * colors[256] = {NULL};
+const char * colors[256] = {NULL};
 
 /*
  * For most modes, we output spaces, but for some
  * we will use block characters (or even nothing)
  */
-char * output = "  ";
+const char * output = "  ";
 
 /*
  * Are we currently in telnet mode?
@@ -835,7 +835,7 @@ int main(int argc, char ** argv) {
 					/*
 					 * Our rainbow, with some padding.
 					 */
-					char *rainbow = ",,>>&&&+++###==;;;,,";
+					const char *rainbow = ",,>>&&&+++###==;;;,,";
 					color = rainbow[mod_x + y-23];
 				} else if (x < 0 || y < 0 || y >= FRAME_HEIGHT || x >= FRAME_WIDTH) {
 					/* Fill all other areas with background */
