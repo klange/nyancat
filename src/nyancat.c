@@ -839,6 +839,7 @@ int main(int argc, char ** argv) {
 					 */
 					const char *rainbow = ",,>>&&&+++###==;;;,,";
 					color = rainbow[mod_x + y-23];
+					if (color == 0) color = ',';
 				} else if (x < 0 || y < 0 || y >= FRAME_HEIGHT || x >= FRAME_WIDTH) {
 					/* Fill all other areas with background */
 					color = ',';
