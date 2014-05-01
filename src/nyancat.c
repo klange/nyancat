@@ -225,6 +225,8 @@ void SIGWINCH_handler(int sig) {
 		min_row = (FRAME_HEIGHT - (terminal_height-1)) / 2;
 		max_row = (FRAME_HEIGHT + (terminal_height-1)) / 2;
 	}
+
+	signal(SIGWINCH, SIGWINCH_handler);
 }
 
 /*
