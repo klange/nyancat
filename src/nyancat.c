@@ -49,6 +49,8 @@
  * WITH THE SOFTWARE.
  */
 
+
+#define _DARWIN_C_SOURCE 1 /* Required when compiling on OSX, should not affect compilation on other systems */
 #define _XOPEN_SOURCE 500
 #include <ctype.h>
 #include <stdio.h>
