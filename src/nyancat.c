@@ -50,6 +50,7 @@
  */
 
 #define _XOPEN_SOURCE 500
+#define _DARWIN_C_SOURCE 1
 #include <ctype.h>
 #include <stdio.h>
 #include <stdint.h>
