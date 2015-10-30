@@ -594,6 +594,8 @@ int main(int argc, char ** argv) {
 		ttype = 6; /* No color support */
 	} else if (strstr(term, "fallback")) {
 		ttype = 4; /* Unicode fallback */
+	} else if (strstr(term, "rxvt-256color")) {
+		ttype = 1; /* xterm 256-color compatible */
 	} else if (strstr(term, "rxvt")) {
 		ttype = 3; /* Accepts LINUX mode */
 	} else if (strstr(term, "vt100") && terminal_width == 40) {
