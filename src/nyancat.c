@@ -51,6 +51,7 @@
 
 #define _XOPEN_SOURCE 500
 #define _DARWIN_C_SOURCE 1
+#define _BSD_SOURCE
 #define __BSD_VISIBLE 1
 #include <ctype.h>
 #include <stdio.h>
