@@ -14,6 +14,11 @@ Nyancat is available in the following distributions:
 - [Mandriva](http://sophie.zarb.org/rpms/928724d4aea0efdbdeda1c80cb59a7d3)
 - [Ubuntu](https://launchpad.net/ubuntu/+source/nyancat)
 
+And also on some BSD systems:
+
+- [FreeBSD](http://www.freshports.org/net/nyancat/)
+- [OpenBSD](http://openports.se/misc/nyancat)
+
 ## Setup
 
 First build the C application:
