@@ -353,7 +353,7 @@ int main(int argc, char ** argv) {
 	int ttype;
 	uint32_t option = 0, done = 0, sb_mode = 0;
 	/* Various pieces for the telnet communication */
-	char  sb[1024] = {0};
+	unsigned char  sb[1024] = {0};
 	unsigned short sb_len   = 0;
 
 	/* Whether or not to show the MOTD intro */
@@ -485,7 +485,7 @@ int main(int argc, char ** argv) {
 								/* This was a response to the TTYPE command, meaning
 								 * that this should be a terminal type */
 								alarm(2);
-								strcpy(term, &sb[2]);
+								strcpy(term, (char *)&sb[2]);
 								done++;
 							}
 							else if (sb[0] == NAWS) {
