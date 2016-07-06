@@ -12,7 +12,7 @@
  * Build tools unified by:  Aaron Peschel
  *                          https://github.com/apeschel
  *
- * For a complete listing of contributers, please see the git commit history.
+ * For a complete listing of contributors, please see the git commit history.
  *
  * This is a simple telnet server / standalone application which renders the
  * classic Nyan Cat (or "poptart cat") to your terminal.
@@ -118,7 +118,7 @@ int show_counter = 1;
 unsigned int frame_count = 0;
 
 /*
- * Clear the screen between frames (as opposed to reseting
+ * Clear the screen between frames (as opposed to resetting
  * the cursor position)
  */
 int clear_screen = 1;
