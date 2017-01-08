@@ -18,6 +18,7 @@ And also on some BSD systems:
 
 - [FreeBSD](http://www.freshports.org/net/nyancat/)
 - [OpenBSD](http://openports.se/misc/nyancat)
+- [NetBSD](http://pkgsrc.se/misc/nyancat)
 
 ## Setup
 
