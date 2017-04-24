@@ -8,7 +8,7 @@ Nyancat rendered in your terminal.
 
 Nyancat is available in the following distributions:
 
-- [Arch](http://aur.archlinux.org/packages.php?ID=55279)
+- [Arch](https://www.archlinux.org/packages/?q=nyancat)
 - [Debian](http://packages.qa.debian.org/n/nyancat.html)
 - [Gentoo](http://packages.gentoo.org/package/games-misc/nyancat)
 - [Mandriva](http://sophie.zarb.org/rpms/928724d4aea0efdbdeda1c80cb59a7d3)
