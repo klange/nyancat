@@ -1,0 +1,11 @@
+--- a/systemd/nyancat@.service
++++ b/systemd/nyancat@.service
+@@ -4,7 +4,7 @@ Documentation=man:nyancat(1)
+ 
+ [Service]
+ User=nobody
+-ExecStart=-/usr/bin/nyancat -t
++ExecStart=-/usr/sbin/nyancat -t -n -I
+ StandardInput=socket
+ StandardOutput=socket
+ 
