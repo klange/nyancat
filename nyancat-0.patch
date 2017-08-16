@@ -1,13 +1,3 @@
-diff --git a/sysconfig/nyancat b/sysconfig/nyancat
-new file mode 100644
-index 0000000..31a4bf5
---- /dev/null
-+++ b/sysconfig/nyancat
-@@ -0,0 +1,4 @@
-+# nyancat command line args
-+# Use /usr/bin/nyancat -h for more info
-+NYANCAT_ARGS="-t"
-+
 diff --git a/systemd/nyancat@.service b/systemd/nyancat@.service
 index 79c16c1..355587e 100644
 --- a/systemd/nyancat@.service
