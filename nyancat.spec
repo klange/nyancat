@@ -46,7 +46,7 @@ systemctl daemon-reload
 
 %files
 /usr/bin/%{name}
-/etc/sysconfig/nyancat
+/etc/sysconfig/%{name}
 /lib/systemd/system/%{name}.socket
 /lib/systemd/system/%{name}@.service
 /usr/share/man/man1/%{name}.1.gz
