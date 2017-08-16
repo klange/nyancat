@@ -1,2 +1,3 @@
-nyancat
+src/nyancat
+*.o
 *.pyc

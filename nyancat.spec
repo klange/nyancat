@@ -29,6 +29,7 @@ make %{?_smp_mflags}
 
 %install
 install -m 0755 -D -t $RPM_BUILD_ROOT/usr/bin $RPM_BUILD_DIR/%{name}-%{version}/src/%{name}
+install -m 0644 -D -t $RPM_BUILD_ROOT/etc/sysconfig $RPM_BUILD_DIR/%{name}-%{version}/sysconfig/%{name}
 install -m 0644 -D -t $RPM_BUILD_ROOT/lib/systemd/system $RPM_BUILD_DIR/%{name}-%{version}/systemd/%{name}.socket
 install -m 0644 -D -t $RPM_BUILD_ROOT/lib/systemd/system $RPM_BUILD_DIR/%{name}-%{version}/systemd/%{name}@.service
 install -m 0644 -D -t $RPM_BUILD_ROOT/usr/share/man/man1 $RPM_BUILD_DIR/%{name}-%{version}/%{name}.1
@@ -45,6 +46,7 @@ systemctl daemon-reload
 
 %files
 /usr/bin/%{name}
+/etc/sysconfig/nyancat
 /lib/systemd/system/%{name}.socket
 /lib/systemd/system/%{name}@.service
 /usr/share/man/man1/%{name}.1.gz
