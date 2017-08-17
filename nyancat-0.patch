@@ -1,0 +1,15 @@
+diff --git a/systemd/nyancat@.service b/systemd/nyancat@.service
+index 79c16c1..355587e 100644
+--- a/systemd/nyancat@.service
++++ b/systemd/nyancat@.service
+@@ -3,8 +3,9 @@ Description=nyancat
+ Documentation=man:nyancat(1)
+ 
+ [Service]
++EnvironmentFile=-/etc/sysconfig/nyancat
+ User=nobody
+-ExecStart=-/usr/bin/nyancat -t
++ExecStart=-/usr/bin/nyancat $NYANCAT_ARGS
+ StandardInput=socket
+ StandardOutput=socket
+ 
