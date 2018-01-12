@@ -34,6 +34,10 @@ To use the telnet server, you need to add a configuration that runs:
 
     nyancat -t
 
+For `openbsd-inetd`, add this to config and reload (change `/usr/local/bin/nyancat` to your path):
+
+    telnet	stream	tcp	nowait	root	/usr/local/bin/nyancat	nyancat -t
+
 We recommend `openbsd-inetd`, but both `xinetd` and `systemd` work as well. You
 should be able to use any other compatible `inetd` flavor too.
 
