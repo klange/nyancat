@@ -64,9 +64,11 @@
 #include <time.h>
 #include <setjmp.h>
 #include <getopt.h>
+#include <pthread.h>
 
 #include <sys/ioctl.h>
 
+#include <termios.h>
 #ifndef TIOCGWINSZ
 #include <termios.h>
 #endif
@@ -130,11 +132,9 @@ int clear_screen = 1;
 int set_title = 1;
 
 /*
- * Environment to use for setjmp/longjmp
- * when breaking out of options handler
+ * Lock of print
  */
-jmp_buf environment;
-
+pthread_mutex_t print_lock;
 
 /*
  * I refuse to include libm to keep this low
@@ -158,6 +158,8 @@ int min_row = -1;
 int max_row = -1;
 int min_col = -1;
 int max_col = -1;
+
+char *term = NULL;
 
 /*
  * Actual width/height of terminal.
@@ -194,17 +196,6 @@ void SIGINT_handler(int sig){
 }
 
 /*
- * Handle the alarm which breaks us off of options
- * handling if we didn't receive a terminal
- */
-void SIGALRM_handler(int sig) {
-	(void)sig;
-	alarm(0);
-	longjmp(environment, 1);
-	/* Unreachable */
-}
-
-/*
  * Handle the loss of stdout, as would be the case when
  * in telnet mode and the client disconnects
  */
@@ -213,13 +204,7 @@ void SIGPIPE_handler(int sig) {
 	finish();
 }
 
-void SIGWINCH_handler(int sig) {
-	(void)sig;
-	struct winsize w;
-	ioctl(0, TIOCGWINSZ, &w);
-	terminal_width = w.ws_col;
-	terminal_height = w.ws_row;
-
+void update_window_size() {
 	if (using_automatic_width) {
 		min_col = (FRAME_WIDTH - terminal_width/2) / 2;
 		max_col = (FRAME_WIDTH + terminal_width/2) / 2;
@@ -229,7 +214,16 @@ void SIGWINCH_handler(int sig) {
 		min_row = (FRAME_HEIGHT - (terminal_height-1)) / 2;
 		max_row = (FRAME_HEIGHT + (terminal_height-1)) / 2;
 	}
+}
 
+void SIGWINCH_handler(int sig) {
+	(void)sig;
+	struct winsize w;
+	ioctl(0, TIOCGWINSZ, &w);
+	terminal_width = w.ws_col;
+	terminal_height = w.ws_row;
+
+	update_window_size();
 	signal(SIGWINCH, SIGWINCH_handler);
 }
 
@@ -346,19 +340,116 @@ void usage(char * argv[]) {
 			argv[0]);
 }
 
-int main(int argc, char ** argv) {
+void *telnet_handler(void *arg) {
+	(void) arg;
+	uint32_t sb_mode = 0;
 
-	char *term = NULL;
-	unsigned int k;
-	int ttype;
-	uint32_t option = 0, done = 0, sb_mode = 0;
 	/* Various pieces for the telnet communication */
 	unsigned char  sb[1024] = {0};
 	unsigned short sb_len   = 0;
 
+	int i;
+
+	while ((i = getchar()) != EOF) {
+		/* Get either IAC (start command) or a regular character (break, unless in SB mode) */
+		unsigned char opt = 0;
+		unsigned char c = i;
+
+		if (c == IAC) {
+			/* If IAC, get the command */
+			c = getchar();
+			switch (c) {
+				case SE:
+					/* End of extended option mode */
+					sb_mode = 0;
+					if (sb[0] == TTYPE) {
+						/* This was a response to the TTYPE command, meaning
+							* that this should be a terminal type */
+						term = strndup((char *)&sb[2], sizeof(sb)-2);
+					}
+					else if (sb[0] == NAWS) {
+						/* This was a response to the NAWS command, meaning
+							* that this should be a window size */
+						terminal_width = (sb[1] << 8) | sb[2];
+						terminal_height = (sb[3] << 8) | sb[4];
+						update_window_size();
+					}
+					break;
+				case NOP:
+					/* No Op */
+					send_command(NOP, 0);
+					fflush(stdout);
+					break;
+				case WILL:
+				case WONT:
+					/* Will / Won't Negotiation */
+					opt = getchar();
+					if (!telnet_willack[opt]) {
+						/* We default to WONT */
+						telnet_willack[opt] = WONT;
+					}
+					send_command(telnet_willack[opt], opt);
+					fflush(stdout);
+					if ((c == WILL) && (opt == TTYPE)) {
+						/* WILL TTYPE? Great, let's do that now! */
+						pthread_mutex_lock(&print_lock);
+						printf("%c%c%c%c%c%c", IAC, SB, TTYPE, SEND, IAC, SE);
+						fflush(stdout);
+						pthread_mutex_unlock(&print_lock);
+					}
+					break;
+				case DO:
+				case DONT:
+					/* Do / Don't Negotiation */
+					opt = getchar();
+					if (!telnet_options[opt]) {
+						/* We default to DONT */
+						telnet_options[opt] = DONT;
+					}
+					send_command(telnet_options[opt], opt);
+					fflush(stdout);
+					break;
+				case SB:
+					/* Begin Extended Option Mode */
+					sb_mode = 1;
+					sb_len  = 0;
+					memset(sb, 0, sizeof(sb));
+					break;
+				case IAC: 
+					/* IAC IAC? That's probably not right. */
+					break;
+				default:
+					break;
+			}
+		} else if (sb_mode) {
+			/* Extended Option Mode -> Accept character */
+			if (sb_len < sizeof(sb) - 1) {
+				/* Append this character to the SB string,
+					* but only if it doesn't put us over
+					* our limit; honestly, we shouldn't hit
+					* the limit, as we're only collecting characters
+					* for a terminal type or window size, but better safe than
+					* sorry (and vulnerable).
+					*/
+				sb[sb_len] = c;
+				sb_len++;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+int main(int argc, char ** argv) {
+
+	unsigned int k;
+	int ttype;
+
 	/* Whether or not to show the MOTD intro */
 	char show_intro = 0;
 	char skip_intro = 0;
+
+	pthread_t telnet_handler_thread;
 
 	/* Long option names */
 	static struct option long_opts[] = {
@@ -438,8 +529,14 @@ int main(int argc, char ** argv) {
 		}
 	}
 
+	if (pthread_mutex_init(&print_lock, NULL) != 0) {
+		printf("Mutex init fail\n");
+		return 1;
+	}
+
 	if (telnet) {
 		/* Telnet mode */
+		uint32_t option = 0;
 
 		/* show_intro is implied unless skip_intro was set */
 		show_intro = (skip_intro == 0) ? 1 : 0;
@@ -448,117 +545,20 @@ int main(int argc, char ** argv) {
 		set_options();
 
 		/* Let the client know what we're using */
-		for (option = 0; option < 256; option++) {
+		for (option = 0; option < sizeof(telnet_options); option++) {
 			if (telnet_options[option]) {
 				send_command(telnet_options[option], option);
 				fflush(stdout);
 			}
 		}
-		for (option = 0; option < 256; option++) {
+		for (option = 0; option < sizeof(telnet_willack); option++) {
 			if (telnet_willack[option]) {
 				send_command(telnet_willack[option], option);
 				fflush(stdout);
 			}
 		}
 
-		/* Set the alarm handler to execute the longjmp */
-		signal(SIGALRM, SIGALRM_handler);
-
-		/* Negotiate options */
-		if (!setjmp(environment)) {
-			/* We will stop handling options after one second */
-			alarm(1);
-
-			/* Let's do this */
-			while (!feof(stdin) && done < 2) {
-				/* Get either IAC (start command) or a regular character (break, unless in SB mode) */
-				unsigned char i = getchar();
-				unsigned char opt = 0;
-				if (i == IAC) {
-					/* If IAC, get the command */
-					i = getchar();
-					switch (i) {
-						case SE:
-							/* End of extended option mode */
-							sb_mode = 0;
-							if (sb[0] == TTYPE) {
-								/* This was a response to the TTYPE command, meaning
-								 * that this should be a terminal type */
-								alarm(2);
-								term = strndup((char *)&sb[2], sizeof(sb)-2);
-								done++;
-							}
-							else if (sb[0] == NAWS) {
-								/* This was a response to the NAWS command, meaning
-								 * that this should be a window size */
-								alarm(2);
-								terminal_width = (sb[1] << 8) | sb[2];
-								terminal_height = (sb[3] << 8) | sb[4];
-								done++;
-							}
-							break;
-						case NOP:
-							/* No Op */
-							send_command(NOP, 0);
-							fflush(stdout);
-							break;
-						case WILL:
-						case WONT:
-							/* Will / Won't Negotiation */
-							opt = getchar();
-							if (!telnet_willack[opt]) {
-								/* We default to WONT */
-								telnet_willack[opt] = WONT;
-							}
-							send_command(telnet_willack[opt], opt);
-							fflush(stdout);
-							if ((i == WILL) && (opt == TTYPE)) {
-								/* WILL TTYPE? Great, let's do that now! */
-								printf("%c%c%c%c%c%c", IAC, SB, TTYPE, SEND, IAC, SE);
-								fflush(stdout);
-							}
-							break;
-						case DO:
-						case DONT:
-							/* Do / Don't Negotiation */
-							opt = getchar();
-							if (!telnet_options[opt]) {
-								/* We default to DONT */
-								telnet_options[opt] = DONT;
-							}
-							send_command(telnet_options[opt], opt);
-							fflush(stdout);
-							break;
-						case SB:
-							/* Begin Extended Option Mode */
-							sb_mode = 1;
-							sb_len  = 0;
-							memset(sb, 0, sizeof(sb));
-							break;
-						case IAC: 
-							/* IAC IAC? That's probably not right. */
-							done = 2;
-							break;
-						default:
-							break;
-					}
-				} else if (sb_mode) {
-					/* Extended Option Mode -> Accept character */
-					if (sb_len < sizeof(sb) - 1) {
-						/* Append this character to the SB string,
-						 * but only if it doesn't put us over
-						 * our limit; honestly, we shouldn't hit
-						 * the limit, as we're only collecting characters
-						 * for a terminal type or window size, but better safe than
-						 * sorry (and vulnerable).
-						 */
-						sb[sb_len] = i;
-						sb_len++;
-					}
-				}
-			}
-		}
-		alarm(0);
+		pthread_create(&telnet_handler_thread, NULL, telnet_handler, NULL);
 	} else {
 		/* We are running standalone, retrieve the
 		 * terminal type from the environment. */
@@ -742,16 +742,16 @@ int main(int argc, char ** argv) {
 	}
 
 	if (min_col == max_col) {
-		min_col = (FRAME_WIDTH - terminal_width/2) / 2;
-		max_col = (FRAME_WIDTH + terminal_width/2) / 2;
 		using_automatic_width = 1;
 	}
 
 	if (min_row == max_row) {
-		min_row = (FRAME_HEIGHT - (terminal_height-1)) / 2;
-		max_row = (FRAME_HEIGHT + (terminal_height-1)) / 2;
 		using_automatic_height = 1;
 	}
+
+	update_window_size();
+
+	pthread_mutex_lock(&print_lock);
 
 	/* Attempt to set terminal title */
 	if (set_title) {
@@ -809,6 +809,8 @@ int main(int argc, char ** argv) {
 		}
 	}
 
+	pthread_mutex_unlock(&print_lock);
+
 	/* Store the start time */
 	time_t start, current;
 	time(&start);
@@ -819,6 +821,8 @@ int main(int argc, char ** argv) {
 	char last = 0;      /* Last color index rendered */
 	int y, x;        /* x/y coordinates of what we're drawing */
 	while (playing) {
+		pthread_mutex_lock(&print_lock);
+
 		/* Reset cursor */
 		if (clear_screen) {
 			printf("\033[H");
@@ -906,6 +910,9 @@ int main(int argc, char ** argv) {
 			/* Loop animation */
 			i = 0;
 		}
+
+		pthread_mutex_unlock(&print_lock);
+
 		/* Wait */
 		usleep(90000);
 	}
