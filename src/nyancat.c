@@ -68,7 +68,6 @@
 
 #include <sys/ioctl.h>
 
-#include <termios.h>
 #ifndef TIOCGWINSZ
 #include <termios.h>
 #endif
