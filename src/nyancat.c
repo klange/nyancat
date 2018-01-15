@@ -182,6 +182,7 @@ void finish() {
 	} else {
 		printf("\033[0m\n");
 	}
+	pthread_mutex_destroy(&print_lock);
 	exit(0);
 }
 
