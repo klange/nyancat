@@ -64,6 +64,7 @@
 #include <time.h>
 #include <setjmp.h>
 #include <getopt.h>
+#include <pthread.h>
 
 #include <sys/ioctl.h>
 
@@ -88,6 +89,11 @@
  * this header so they don't clutter the core source
  */
 #include "animation.c"
+
+/*
+ * The code to play music using libsox
+ */
+#include "music.c"
 
 /*
  * Color palette to use for final output
@@ -128,6 +134,11 @@ int clear_screen = 1;
  * Force-set the terminal title.
  */
 int set_title = 1;
+
+/*
+ * Play background music
+ */
+int play_music = 1;
 
 /*
  * Environment to use for setjmp/longjmp
@@ -172,6 +183,11 @@ char using_automatic_width = 0;
 char using_automatic_height = 0;
 
 /*
+ * Thread ID for the music thread
+ */
+pthread_t music_thread_id;
+
+/*
  * Print escape sequences to return cursor to visible mode
  * and exit the application.
  */
@@ -180,6 +196,11 @@ void finish() {
 		printf("\033[?25h\033[0m\033[H\033[2J");
 	} else {
 		printf("\033[0m\n");
+	}
+	if (play_music) {
+		pthread_cancel(music_thread_id);
+		pthread_join(music_thread_id, NULL);
+		nyan_music_cleanup();
 	}
 	exit(0);
 }
@@ -335,6 +356,7 @@ void usage(char * argv[]) {
 			" -n --no-counter \033[3mDo not display the timer\033[0m\n"
 			" -s --no-title   \033[3mDo not set the titlebar text\033[0m\n"
 			" -e --no-clear   \033[3mDo not clear the display between frames\033[0m\n"
+			" -m --no-music   \033[3mDo not play music (music not available in telnet mode)\033[0m\n",
 			" -f --frames     \033[3mDisplay the requested number of frames, then quit\033[0m\n"
 			" -r --min-rows   \033[3mCrop the animation from the top\033[0m\n"
 			" -R --max-rows   \033[3mCrop the animation from the bottom\033[0m\n"
@@ -369,6 +391,7 @@ int main(int argc, char ** argv) {
 		{"no-counter", no_argument,       0, 'n'},
 		{"no-title",   no_argument,       0, 's'},
 		{"no-clear",   no_argument,       0, 'e'},
+		{"no-music",   no_argument,       0, 'm'},
 		{"frames",     required_argument, 0, 'f'},
 		{"min-rows",   required_argument, 0, 'r'},
 		{"max-rows",   required_argument, 0, 'R'},
@@ -381,7 +404,7 @@ int main(int argc, char ** argv) {
 
 	/* Process arguments */
 	int index, c;
-	while ((c = getopt_long(argc, argv, "eshiItnf:r:R:c:C:W:H:", long_opts, &index)) != -1) {
+	while ((c = getopt_long(argc, argv, "esmhiItnf:r:R:c:C:W:H:", long_opts, &index)) != -1) {
 		if (!c) {
 			if (long_opts[index].flag == 0) {
 				c = long_opts[index].val;
@@ -393,6 +416,9 @@ int main(int argc, char ** argv) {
 				break;
 			case 's':
 				set_title = 0;
+				break;
+			case 'm':
+				play_music = 0;
 				break;
 			case 'i': /* Show introduction */
 				show_intro = 1;
@@ -440,6 +466,9 @@ int main(int argc, char ** argv) {
 
 	if (telnet) {
 		/* Telnet mode */
+		
+		/* No music in telnet mode */
+		play_music = 0;
 
 		/* show_intro is implied unless skip_intro was set */
 		show_intro = (skip_intro == 0) ? 1 : 0;
@@ -812,6 +841,11 @@ int main(int argc, char ** argv) {
 	/* Store the start time */
 	time_t start, current;
 	time(&start);
+	
+	/* Start music thread */
+	if (play_music) {
+		pthread_create(&music_thread_id, NULL, play_nyan_music, NULL);
+	}
 
 	int playing = 1;    /* Animation should continue [left here for modifications] */
 	size_t i = 0;       /* Current frame # */
@@ -909,5 +943,6 @@ int main(int argc, char ** argv) {
 		/* Wait */
 		usleep(90000);
 	}
+
 	return 0;
 }

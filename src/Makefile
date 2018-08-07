@@ -3,7 +3,7 @@ OBJECTS = nyancat.o
 CC	?=
 CFLAGS	 ?= -g -Wall -Wextra -std=c99 -pedantic -Wwrite-strings
 CPPFLAGS ?=
-LDFLAGS  ?=
+LDFLAGS  ?= -lsox
 
 all: nyancat
 

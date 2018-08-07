@@ -19,6 +19,8 @@ $(distdir): FORCE
 	cp src/nyancat.c $(distdir)/src
 	cp src/animation.h $(distdir)/src
 	cp src/telnet.h $(distdir)/src
+	cp src/music.c $(distdir)/src
+	cp src/musicdata.c $(distdir)/src
 
 FORCE:
 	-rm $(distdir).tar.gz >/dev/null 2>&1
