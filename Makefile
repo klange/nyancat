@@ -17,9 +17,10 @@ $(distdir): FORCE
 	cp Makefile $(distdir)
 	cp src/Makefile $(distdir)/src
 	cp src/nyancat.c $(distdir)/src
-	cp src/animation.h $(distdir)/src
+	cp src/animation.c $(distdir)/src
 	cp src/telnet.h $(distdir)/src
 	cp src/music.c $(distdir)/src
+	cp src/music.h $(distdir)/src
 	cp src/musicdata.c $(distdir)/src
 
 FORCE:
