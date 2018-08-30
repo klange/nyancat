@@ -356,7 +356,7 @@ void usage(char * argv[]) {
 			" -n --no-counter \033[3mDo not display the timer\033[0m\n"
 			" -s --no-title   \033[3mDo not set the titlebar text\033[0m\n"
 			" -e --no-clear   \033[3mDo not clear the display between frames\033[0m\n"
-			" -m --no-music   \033[3mDo not play music (music not available in telnet mode)\033[0m\n",
+			" -m --no-music   \033[3mDo not play music (music not available in telnet mode)\033[0m\n"
 			" -f --frames     \033[3mDisplay the requested number of frames, then quit\033[0m\n"
 			" -r --min-rows   \033[3mCrop the animation from the top\033[0m\n"
 			" -R --max-rows   \033[3mCrop the animation from the bottom\033[0m\n"

@@ -1,5 +1,8 @@
-/* Based on example3.c from libsox
- *
+/* 
+ * Music add-on developed by:   Mark Parncutt
+ *                              http://github.com/U-238
+ * 
+ * Based on example3.c from libsox
  * Copyright (c) 2007-9 robs@users.sourceforge.net
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -31,6 +34,7 @@
 #include "musicdata.c"
 
 #ifndef HAVE_FMEMOPEN
+/* The music is temporarily written here if we can't use FMEMOPEN */
 #define TMP_MUSIC_FILE "/tmp/nyancat.ogg"
 #endif 
 
@@ -159,8 +163,8 @@ void *play_nyan_music(void *vargp)
   char * args[10];
   sigset_t sset;
   
-  /* Block all signals that the main thread has a handler for. */
-  /* The main thread will send SIGHUP to this thread to stop playing music */
+  /* Block all signals that the main thread has a handler for,
+     so that those signals go to the main thread */
   sigemptyset(&sset);
   sigaddset(&sset, SIGWINCH);
   sigaddset(&sset, SIGALRM);
@@ -180,7 +184,6 @@ void *play_nyan_music(void *vargp)
   fclose(fp);
   assert(in = sox_open_read(TMP_MUSIC_FILE, NULL, NULL, NULL));
 #endif
-  /* Change "alsa" in this line to use an alternative audio device driver: */
   assert(out= sox_open_write("default", &in->signal, NULL, default_device(), NULL, NULL));
 
   chain = sox_create_effects_chain(&in->encoding, &out->encoding);

@@ -1,7 +1,7 @@
 OBJECTS = nyancat.o
 
 CC	?=
-CFLAGS	 ?= -g -Wall -Wextra -std=c99 -pedantic -Wwrite-strings
+CFLAGS	 ?= -g -Wall -Wextra -std=c99 -pedantic -Wwrite-strings -Wno-incompatible-pointer-types-discards-qualifiers -Wno-unused-parameter
 CPPFLAGS ?=
 LDFLAGS  ?= -lsox
 
