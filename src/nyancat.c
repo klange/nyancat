@@ -93,7 +93,7 @@
 /*
  * The code to play music using libsox
  */
-#include "music.c"
+#include "music.h"
 
 /*
  * Color palette to use for final output

@@ -24,12 +24,22 @@
 #undef NDEBUG /* Must undef above assert.h or other that might include it. */
 #endif
 
+#define _XOPEN_SOURCE 700
+#define _DARWIN_C_SOURCE 1
+#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
+#define __BSD_VISIBLE 1
 #include <sox.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <ctype.h>
+#include <inttypes.h>
+#include <pthread.h>
+#include <signal.h>
+#include <unistd.h>
 
 #include "musicdata.c"
 
@@ -54,7 +64,7 @@ void *lsx_realloc(void *ptr, size_t newsize)
 }
 
 #define lsx_malloc(size) lsx_realloc(NULL, (size))
-#define lsx_calloc(n,s) (((n)*(s))? memset(lsx_malloc((n)*(s)),0,(n)*(s)) : NULL)
+#define lsx_calloc(n,s) (((n)&&(s))? memset(lsx_malloc((n)*(s)),0,(n)*(s)) : NULL)
 
 #ifdef min
 #undef min
@@ -139,13 +149,13 @@ static char const * default_device()
   const char *name = NULL;
   if (!name) name = getenv("AUDIODRIVER");
   if (!name) name = try_device("coreaudio");
-  if (!name) name = try_device("pulseaudio");
   if (!name) name = try_device("alsa");
   if (!name) name = try_device("waveaudio");
   if (!name) name = try_device("sndio");
   if (!name) name = try_device("oss");
   if (!name) name = try_device("sunau");
   if (!name) name = try_device("ao");
+  if (!name) name = try_device("pulseaudio");
 
   if (!name) {
     fprintf(stderr, "Sorry, there is no default audio device configured");
