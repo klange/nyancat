@@ -1,7 +1,7 @@
 OBJECTS = nyancat.o music.o
 
 CC	?=
-CFLAGS	 ?= -g -Wall -Wextra -std=c99 -pedantic -Wwrite-strings -Wno-incompatible-pointer-types-discards-qualifiers -Wno-unused-parameter -Wno-discarded-qualifiers
+CFLAGS	 ?= -g -Wall -Wextra -std=c99 -pedantic -Wwrite-strings -Wno-incompatible-pointer-types-discards-qualifiers -Wno-unused-parameter -Wno-discarded-qualifiers -Wno-unknown-warning-option
 CPPFLAGS ?=
 LDFLAGS  ?= -lsox -lpthread
 
