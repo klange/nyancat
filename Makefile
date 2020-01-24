@@ -17,7 +17,6 @@ $(distdir): FORCE
 	cp Makefile $(distdir)
 	cp src/Makefile $(distdir)/src
 	cp src/nyancat.c $(distdir)/src
-	cp src/animation.h $(distdir)/src
 	cp src/telnet.h $(distdir)/src
 
 FORCE:
