@@ -67,7 +67,7 @@
 
 #include <sys/ioctl.h>
 
-#ifndef TIOCGWINSZ
+#if !defined TIOCGWINSZ || defined(__managarm__)
 #include <termios.h>
 #endif
 
