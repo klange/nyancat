@@ -544,7 +544,7 @@ int main(int argc, char ** argv) {
 							sb_len  = 0;
 							memset(sb, 0, sizeof(sb));
 							break;
-						case IAC: 
+						case IAC:
 							/* IAC IAC? That's probably not right. */
 							done = 2;
 							break;
