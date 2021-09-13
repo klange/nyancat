@@ -188,7 +188,7 @@ void finish() {
  * In the standalone mode, we want to handle an interrupt signal
  * (^C) so that we can restore the cursor and clear the terminal.
  */
-void SIGINT_handler(int sig){
+void SIGINT_handler(int sig) {
 	(void)sig;
 	finish();
 }
