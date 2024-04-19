@@ -612,6 +612,8 @@ int main(int argc, char ** argv) {
 			ttype = 7; /* No color support, only 40 columns */
 		} else if (!strncmp(term, "st", 2)) {
 			ttype = 1; /* suckless simple terminal is xterm-256color-compatible */
+		} else if (!strncmp(term, "truecolor", 9)) {
+			ttype = 8;
 		}
 	}
 
@@ -745,6 +747,22 @@ int main(int argc, char ** argv) {
 			colors['%']  = "o";             /* Pink cheeks */
 			always_escape = 1;
 			terminal_width = 40;
+			break;
+		case 8:
+			colors[',']  = "\033[48;2;0;49;105m";    /* Blue background */
+			colors['.']  = "\033[48;2;255;255;255m"; /* White stars */
+			colors['\''] = "\033[48;2;0;0;0m";       /* Black border */
+			colors['@']  = "\033[48;2;255;205;152m"; /* Tan poptart */
+			colors['$']  = "\033[48;2;255;169;255m"; /* Pink poptart */
+			colors['-']  = "\033[48;2;255;76;152m";  /* Red poptart */
+			colors['>']  = "\033[48;2;255;25;0m";    /* Red rainbow */
+			colors['&']  = "\033[48;2;255;154;0m";   /* Orange rainbow */
+			colors['+']  = "\033[48;2;255;240;0m";   /* Yellow Rainbow */
+			colors['#']  = "\033[48;2;40;220;0m";    /* Green rainbow */
+			colors['=']  = "\033[48;2;0;144;255m";   /* Light blue rainbow */
+			colors[';']  = "\033[48;2;104;68;255m";  /* Dark blue rainbow */
+			colors['*']  = "\033[48;2;153;153;153m"; /* Gray cat face */
+			colors['%']  = "\033[48;2;255;163;152m"; /* Pink cheeks */
 			break;
 		default:
 			break;
