@@ -3,6 +3,7 @@
 Nyancat rendered in your terminal.
 
 [![Nyancats](http://nyancat.dakko.us/nyancat.png)](http://nyancat.dakko.us/nyancat.png)
+![nyancat_gif](https://user-images.githubusercontent.com/44383325/133495552-62b2fddf-748a-4114-82ca-66829b258892.gif)
 
 ## Distributions
 
