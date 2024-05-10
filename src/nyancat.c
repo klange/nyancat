@@ -188,7 +188,7 @@ void finish() {
  * In the standalone mode, we want to handle an interrupt signal
  * (^C) so that we can restore the cursor and clear the terminal.
  */
-void SIGINT_handler(int sig){
+void SIGINT_handler(int sig) {
 	(void)sig;
 	finish();
 }
@@ -544,7 +544,7 @@ int main(int argc, char ** argv) {
 							sb_len  = 0;
 							memset(sb, 0, sizeof(sb));
 							break;
-						case IAC: 
+						case IAC:
 							/* IAC IAC? That's probably not right. */
 							done = 2;
 							break;
