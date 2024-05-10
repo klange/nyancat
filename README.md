@@ -40,6 +40,8 @@ should be able to use any other compatible `inetd` flavor too.
 
 ## Distribution Specific Information
 
+[![Packaging status](https://repology.org/badge/tiny-repos/nyancat.svg)](https://repology.org/project/nyancat/versions)
+
 #### Debian/Ubuntu
 
 Debian and Ubuntu provide the nyancat binary through the `nyancat` package. A
