@@ -3,8 +3,14 @@ version = 1.5.2
 tarname = $(package)
 distdir = $(tarname)-$(version)
 
-all clean check nyancat:
+all clean check:
 	cd src && $(MAKE) $@
+
+nyancat: src/nyancat.o
+	cd src && $(MAKE) $@
+
+src/nyancat.o: src/nyancat.c src/telnet.h src/animation.c
+	cd src && $(MAKE) nyancat.o
 
 dist: $(distdir).tar.gz
 
@@ -36,4 +42,4 @@ install: all
 	install src/nyancat /usr/bin/${package}
 	gzip -9 -c < nyancat.1 > /usr/share/man/man1/nyancat.1.gz
 
-.PHONY: FORCE all clean check dist distcheck install
+.PHONY: FORCE all clean check dist distcheck install nyancat
