@@ -113,6 +113,11 @@ int telnet = 0;
 int show_counter = 1;
 
 /*
+ * Enable transparent background
+ */
+int transparent_bg = 0;
+
+/*
  * Number of frames to show before quitting
  * or 0 to repeat forever (default)
  */
@@ -335,6 +340,7 @@ void usage(char * argv[]) {
 			" -n --no-counter \033[3mDo not display the timer\033[0m\n"
 			" -s --no-title   \033[3mDo not set the titlebar text\033[0m\n"
 			" -e --no-clear   \033[3mDo not clear the display between frames\033[0m\n"
+      " -T --transparent\033[3mRender with transparent background\033[0m\n"
 			" -d --delay      \033[3mDelay image rendering by anywhere between 10ms and 1000ms\n"
 			" -f --frames     \033[3mDisplay the requested number of frames, then quit\033[0m\n"
 			" -r --min-rows   \033[3mCrop the animation from the top\033[0m\n"
@@ -369,6 +375,7 @@ int main(int argc, char ** argv) {
 		{"skip-intro", no_argument,       0, 'I'},
 		{"no-counter", no_argument,       0, 'n'},
 		{"no-title",   no_argument,       0, 's'},
+    {"transparent",no_argument,       0, 'T'},
 		{"no-clear",   no_argument,       0, 'e'},
 		{"delay",      required_argument, 0, 'd'},
 		{"frames",     required_argument, 0, 'f'},
@@ -386,7 +393,7 @@ int main(int argc, char ** argv) {
 
 	/* Process arguments */
 	int index, c;
-	while ((c = getopt_long(argc, argv, "eshiItnd:f:r:R:c:C:W:H:", long_opts, &index)) != -1) {
+	while ((c = getopt_long(argc, argv, "eshiItTnd:f:r:R:c:C:W:H:", long_opts, &index)) != -1) {
 		if (!c) {
 			if (long_opts[index].flag == 0) {
 				c = long_opts[index].val;
@@ -415,6 +422,9 @@ int main(int argc, char ** argv) {
 			case 'n':
 				show_counter = 0;
 				break;
+      case 'T':
+        transparent_bg = 1;
+        break;
 			case 'd':
 				if (10 <= atoi(optarg) && atoi(optarg) <= 1000)
 					delay_ms = atoi(optarg);
@@ -767,6 +777,8 @@ int main(int argc, char ** argv) {
 		default:
 			break;
 	}
+
+  if (transparent_bg && ttype != 6 && ttype != 7) colors[','] = "\033[49m";
 
 	if (min_col == max_col) {
 		min_col = (FRAME_WIDTH - terminal_width/2) / 2;
